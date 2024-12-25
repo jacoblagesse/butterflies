@@ -2,12 +2,68 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>Butterflies</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+    const numButterflies = 5;
+    const butterflies = []
+    
+    function createButterfly(direction) {
+      const butterfly = document.createElement('img');
+      butterfly.src = direction === 'right' ? `${process.env.PUBLIC_URL}/butterflies/flyright.gif` : `${process.env.PUBLIC_URL}/butterflies/flyleft.gif`;
+      
+      butterfly.style.position = 'absolute';
+      butterfly.style.width = '100px';
+      butterfly.style.height = 'auto';
+
+      butterfly.posX = Math.random() * window.innerWidth;
+      butterfly.posY = Math.random() * window.innerHeight;
+      butterfly.velocityX = 0.2 + Math.random() * 1;
+      butterfly.velocityY = 0.1 + Math.random() * 1;
+      butterfly.bobbingAmplitude = 5; 
+      butterfly.bobbingFrequency = 0.03; 
+      butterfly.time = 0;
+
+      document.body.appendChild(butterfly);
+      return butterfly;
+  }
+
+  for (let i = 0; i < numButterflies; i++) {
+      const direction = Math.random() < 0.5 ? 'right' : 'left';
+      butterflies.push(createButterfly(direction));
+  }
+
+  function animate() {
+      butterflies.forEach(butterfly => {
+          butterfly.posX += butterfly.velocityX;
+          butterfly.posY += butterfly.velocityY + Math.sin(butterfly.time) * (butterfly.bobbingAmplitude / 10);
+
+          if (butterfly.posX <= 0) {
+              butterfly.velocityX = -butterfly.velocityX;
+              butterfly.src = 'assets/flyright.gif';
+          } else if (butterfly.posX >= window.innerWidth - butterfly.width) {
+              butterfly.velocityX = -butterfly.velocityX;
+              butterfly.src = 'assets/flyleft.gif';
+          }
+          if (butterfly.posY <= 0 || butterfly.posY >= window.innerHeight - butterfly.height) {
+              butterfly.velocityY = -butterfly.velocityY;
+              butterfly.posY = Math.max(0, Math.min(butterfly.posY, window.innerHeight - butterfly.height));
+          }
+
+          butterfly.style.left = `${butterfly.posX}px`;
+          butterfly.style.top = `${butterfly.posY}px`;
+
+          butterfly.time += butterfly.bobbingFrequency;
+      });
+
+      requestAnimationFrame(animate);
+  }
+
+  animate();
+    </script>
   </body>
 </html>
