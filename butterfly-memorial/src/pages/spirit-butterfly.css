@@ -1,108 +1,179 @@
 /* =========================================================
-   Spirit Butterfly — Global Stylesheet (Landing + Creation)
-   Responsive, larger typography. Prevents overflow.
+   Spirit Butterfly — Shared Stylesheet (Restart)
+   Regular web conventions (16px base), clean + tactile UI.
+   Used by: Landing.jsx and Creation.jsx
    ========================================================= */
 
-   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@500;700&display=swap');
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@500;700&display=swap');
 
-   :root{
-     --bg-1:#f7f5f2; --bg-2:#f0f7ff; --ink:#1f2a37; --muted:#5b6470;
-     --accent:#6c62ff; --accent-2:#6ec3ff; --cta:#5e8b7e; --cta-ink:#fff;
-     --card:#ffffffcc; --ring:#00000012;
-   
-     --radius-lg:42px; --radius-md:28px; --radius-sm:20px;
-   }
-   
-   html, body, #root{height:100%; width:100%}
-   body{margin:0; font-size:20px}
-   
-   .page{
-     min-height:100vh; min-height:100dvh; min-width:100vw;
-     color:var(--ink);
-     background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
-     font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-     display:flex; flex-direction:column; overflow-x:hidden;
-   }
-   
-   .wrap{
-     flex:1; display:flex; flex-direction:column; width:100%;
-     max-width:clamp(960px, 92vw, 1500px);
-     margin:0 auto; padding:clamp(24px,4vw,60px) clamp(16px,4.5vw,40px);
-     box-sizing:border-box;
-   }
-   
-   .full-page .wrap.full-wrap{max-width:none; width:100%; padding-inline:clamp(16px,5vw,56px)}
-   
-   header{display:flex; align-items:center; justify-content:space-between; gap:clamp(16px,4vw,40px)}
-   .brand{display:flex; align-items:center; gap:clamp(10px,1.6vw,20px); text-decoration:none; color:inherit; min-width:0}
-   .logo{width:clamp(40px,6vw,80px); height:clamp(40px,6vw,80px); display:grid; place-items:center; border-radius:var(--radius-sm); background:radial-gradient(circle at 30% 30%, #ffd1e6, #b7e7ff 60%, #ffffff 100%); box-shadow:0 12px 30px var(--ring); flex-shrink:0}
-   .h1{font-family:"Playfair Display",serif; font-weight:700; letter-spacing:.3px; font-size:clamp(20px,2.2vw,44px); margin:0; line-height:1; white-space:nowrap}
-   nav{display:flex; gap:clamp(12px,2.4vw,32px); align-items:center}
-   nav a{color:var(--muted); text-decoration:none; font-weight:700; font-size:clamp(16px,1.8vw,24px); line-height:1; display:flex; align-items:center}
-   nav a:hover{color:var(--ink)}
-   .signin{padding:clamp(8px,1.2vw,18px) clamp(10px,1.8vw,26px); border-radius:clamp(10px,1.4vw,18px); background:#ffffffaa; box-shadow:0 12px 30px var(--ring); backdrop-filter:blur(6px); font-size:clamp(14px,1.6vw,22px); line-height:1; display:flex; align-items:center}
-   
-   .hero{position:relative; margin-top:clamp(28px,5vw,80px); display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(14px,3.5vw,48px); align-items:center; flex:1; min-width:0}
-   .hero > *{min-width:0}
-   @media (max-width: 1200px){ .hero{grid-template-columns:1fr} }
-   
-   .hero.full-hero{grid-template-columns:2fr 1fr}
-   @media (max-width: 1200px){ .hero.full-hero{grid-template-columns:1fr} }
-   
-   .hero-card{background:var(--card); border-radius:var(--radius-lg); padding:clamp(24px,4vw,72px); box-shadow:0 28px 84px var(--ring); backdrop-filter:blur(10px)}
-   
-   .eyebrow{display:inline-grid; place-items:center; font-size:clamp(12px,1.4vw,24px); letter-spacing:.6px; text-transform:uppercase; padding:clamp(6px,1vw,16px) clamp(8px,1.6vw,22px); border-radius:999px; background:#ffffffb8; color:#5a6472; font-weight:800; box-shadow:0 12px 30px var(--ring)}
-   
-   h2{font-family:"Playfair Display",serif; font-size:clamp(42px, 8vw, 96px); line-height:1.06; margin:clamp(12px,2vw,28px) 0 clamp(8px,1.6vw,22px)}
-   .sub{font-size:clamp(16px,2.2vw,34px); color:var(--muted); line-height:1.65; overflow-wrap:anywhere}
-   
-   .cta-row{display:flex; gap:clamp(10px,2vw,28px); flex-wrap:wrap; margin-top:clamp(16px,3vw,42px)}
-   .btn{appearance:none; border:none; cursor:pointer; border-radius:clamp(12px,2vw,24px); font-weight:800; font-size:clamp(16px,2vw,30px); padding:clamp(12px,2vw,26px) clamp(16px,3vw,36px); min-height:clamp(44px,7vh,80px); transition:transform .06s ease, box-shadow .2s ease; line-height:1; display:inline-flex; align-items:center; justify-content:center}
-   .btn:active{transform:translateY(1px)}
-   .btn.primary{background:var(--cta); color:var(--cta-ink); box-shadow:0 18px 52px rgba(58,110,96,.25)}
-   .btn.primary:hover{box-shadow:0 26px 64px rgba(58,110,96,.35)}
-   .btn.ghost{background:#ffffff; color:var(--ink); box-shadow:0 12px 30px var(--ring)}
-   
-   .in{border:1px solid #e7ebef; border-radius:clamp(12px,1.8vw,20px); padding:clamp(12px,1.8vw,22px) clamp(12px,2vw,24px); background:#fff; font-size:clamp(16px,2vw,26px); width:100%; max-width:100%; box-sizing:border-box}
-   
-   .right{position:relative; height:100%; min-height:clamp(360px, 55vh, 720px); background:radial-gradient(80% 60% at 50% 55%, #ffffffee, #ffffff88 60%, #ffffff00 100%); border-radius:var(--radius-lg); box-shadow:0 28px 84px var(--ring); overflow:hidden; flex:1}
-   .garden{position:absolute; inset:0; background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
-   .hill{position:absolute; bottom:-10%; width:160%; left:-30%; height:70%; background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc); border-radius:50%}
-   .flower{position:absolute; width:clamp(10px,2vw,22px); height:clamp(10px,2vw,22px); background:#ffd1e6; border-radius:50%; box-shadow:0 0 0 clamp(6px,1.6vw,12px) #ffd1e63a}
-   
-   .butterfly{position:absolute; width:clamp(20px,3.5vw,44px); height:clamp(20px,3.5vw,44px); transform-origin:center; animation:flap 1.4s ease-in-out infinite, float linear var(--dur) var(--delay) forwards}
-   .butterfly svg{filter:drop-shadow(0 10px 16px rgba(0,0,0,.12))}
-   @keyframes flap{0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(2deg) scale(1.08)}}
-   @keyframes float{from{transform:translate(var(--x),var(--y))} to{transform:translate(calc(var(--x) + var(--dx)), calc(var(--y) - 60vh))}}
-   
-   .buy{margin-top:clamp(24px,5vw,80px)}
-   .buy h4{font-family:"Playfair Display",serif; font-size:clamp(18px,2.4vw,40px); margin:0 0 clamp(8px,1.6vw,20px)}
-   .tiers{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:clamp(12px,2.2vw,28px)}
-   .card{background:#ffffff; border-radius:var(--radius-md); padding:clamp(16px,2.6vw,36px); box-shadow:0 18px 52px var(--ring); display:flex; align-items:center; justify-content:space-between; min-width:0}
-   .card .left{display:flex; gap:clamp(10px,1.8vw,22px); align-items:center; min-width:0}
-   .badge{display:inline-grid; place-items:center; width:clamp(40px,5vw,72px); height:clamp(40px,5vw,72px); border-radius:clamp(12px,2vw,20px); background:linear-gradient(135deg,#ffe7f3,#e6f5ff)}
-   .qty{
-    font-weight:900;
-    font-size:clamp(18px,2.2vw,32px);
-    white-space:nowrap;
-    font-variant-numeric:tabular-nums;
-    letter-spacing:.01em;
-  }
-  .price{
-    color:var(--muted);
-    font-weight:700;
-    font-size:clamp(14px,1.9vw,24px);
-    white-space:nowrap;
-  }
-   
-   .dot{width:clamp(28px,3.4vw,44px); height:clamp(28px,3.4vw,44px); border-radius:999px; display:grid; place-items:center; background:#fff; box-shadow:0 12px 30px var(--ring); color:var(--muted); font-weight:800; font-size:clamp(14px,1.8vw,22px)}
-   .dot.active{background:var(--cta); color:#fff}
-   .sep{height:clamp(2px, .5vw, 4px); width:clamp(22px,3.4vw,44px); background:#d6e2e0; border-radius:2px}
-   
-   .fade{opacity:0; transform:translateY(10px); transition:opacity .35s ease, transform .35s ease}
-   .fade.in{opacity:1; transform:translateY(0)}
-   
-   .theme{border:2px solid transparent; border-radius:clamp(16px,2.4vw,28px); padding:clamp(12px,2vw,26px); background:#fff; box-shadow:0 18px 52px var(--ring); cursor:pointer; font-size:clamp(16px,2vw,26px)}
-   .theme.active{border-color:var(--cta)}
-   
-   footer{margin:clamp(16px,3vw,42px) 0; text-align:center; color:var(--muted); font-size:clamp(14px,1.8vw,22px)}
+/* Design tokens */
+:root{
+  /* colors */
+  --bg-1:#f7f5f2;            /* warm ivory */
+  --bg-2:#f0f7ff;            /* soft sky */
+  --ink:#1f2a37;             /* primary text */
+  --muted:#5b6470;           /* secondary text */
+  --accent:#6c62ff;          /* violet wing */
+  --accent-2:#6ec3ff;        /* sky wing */
+  --cta:#5e8b7e;             /* sage */
+  --cta-ink:#ffffff;
+  --card:#ffffffcc;          /* glass card */
+  --ring:#00000012;          /* shadow tint */
+
+  /* radii */
+  --r-lg:28px;               /* large card radius */
+  --r-md:16px;               /* medium radius */
+  --r-sm:12px;               /* small radius */
+
+  /* type scale (regular web defaults) */
+  --fs-base:16px;
+  --fs-small:14px;
+  --fs-nav:15px;
+  --fs-sub:17px;
+  --fs-btn:16px;
+  --fs-h1-min:32px;
+  --fs-h1-max:56px;
+}
+
+/* Root & layout */
+html, body, #root{height:100%}
+body{margin:0; font-size:var(--fs-base);}
+
+.page{
+  min-height:100vh;            /* desktop */
+  min-height:100dvh;           /* mobile safe */
+  min-width:100vw;
+  color:var(--ink);
+  background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  display:flex; flex-direction:column; overflow-x:hidden;
+}
+
+.wrap{
+  flex:1; display:flex; flex-direction:column;
+  width:100%; max-width:1200px; margin:0 auto; padding:32px 20px;
+}
+
+/* Full-width page variant (if needed) */
+.page.full .wrap{max-width:none; padding-inline:clamp(16px,4vw,40px)}
+
+/* Header */
+header{display:flex; align-items:center; justify-content:space-between; gap:20px}
+.brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit}
+.logo{width:40px; height:40px; display:grid; place-items:center; border-radius:var(--r-sm);
+  background:radial-gradient(circle at 30% 30%, #ffd1e6, #b7e7ff 60%, #ffffff 100%);
+  box-shadow:0 8px 24px var(--ring);
+}
+.h1{font-family:"Playfair Display",serif; font-weight:700; letter-spacing:.3px; font-size:20px; margin:0}
+nav{display:flex; gap:16px; align-items:center}
+nav a{color:var(--muted); text-decoration:none; font-weight:600; font-size:var(--fs-nav); line-height:1}
+nav a:hover{color:var(--ink)}
+.signin{padding:10px 12px; border-radius:10px; background:#ffffffaa; box-shadow:0 8px 24px var(--ring); backdrop-filter:blur(6px)}
+
+/* Hero */
+.hero{position:relative; margin-top:36px; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; flex:1}
+@media (max-width: 992px){ .hero{grid-template-columns:1fr; gap:12px} }
+
+/* Creation page: centered options layout */
+.creation .hero{grid-template-columns:1fr; place-items:center}
+.creation .hero .hero-card{max-width:720px; width:100%}
+
+.hero-card{background:var(--card); border-radius:var(--r-lg); padding:28px; box-shadow:0 20px 60px var(--ring); backdrop-filter:blur(8px)}
+
+.eyebrow{display:inline-grid; place-items:center; font-size:12px; letter-spacing:.5px; text-transform:uppercase; padding:8px 12px; border-radius:999px; background:#ffffffb8; color:#5a6472; font-weight:800; box-shadow:0 8px 24px var(--ring)}
+
+h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, var(--fs-h1-max)); line-height:1.08; margin:14px 0 10px}
+.sub{font-size:var(--fs-sub); color:var(--muted); line-height:1.6}
+
+/* Buttons (tactile) */
+.cta-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:20px}
+.btn{position:relative; isolation:isolate; appearance:none; border:none; cursor:pointer; border-radius:14px; font-weight:800; font-size:var(--fs-btn); padding:12px 16px; min-height:44px; line-height:1; display:inline-flex; align-items:center; justify-content:center; transition:transform .06s ease, box-shadow .25s ease, background .25s ease}
+.btn:active{transform:translateY(1px)}
+.btn::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow:0 6px 16px rgba(0,0,0,.16); opacity:0; transition:opacity .25s ease}
+.btn:hover::after{opacity:1}
+.btn.primary{background:var(--cta); color:var(--cta-ink)}
+.btn.primary:hover{box-shadow:0 14px 30px rgba(58,110,96,.28)}
+.btn.ghost{background:#ffffff; color:var(--ink); box-shadow:0 8px 20px var(--ring)}
+
+/* Focus ring */
+.btn:focus-visible, .in:focus-visible, a:focus-visible{outline:3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset:3px; border-radius:14px}
+
+/* Inputs */
+.in{border:1px solid #e7ebef; border-radius:12px; padding:12px 14px; background:#fff; font-size:16px; width:100%; box-sizing:border-box}
+
+/* Visual pane (garden preview) */
+.right{position:relative; height:100%; min-height:420px; background:radial-gradient(80% 60% at 50% 55%, #ffffffee, #ffffff88 60%, #ffffff00 100%); border-radius:var(--r-lg); box-shadow:0 20px 60px var(--ring); overflow:hidden}
+.garden{position:absolute; inset:0; background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
+.hill{position:absolute; bottom:-10%; width:140%; left:-20%; height:60%; background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc); border-radius:50%}
+.flower{position:absolute; width:10px; height:10px; background:#ffd1e6; border-radius:50%; box-shadow:0 0 0 6px #ffd1e63a}
+
+/* Themes for gardens */
+.theme-serene .garden{background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
+.theme-serene .hill{background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc)}
+.theme-serene .flower{background:#ffd1e6; box-shadow:0 0 0 6px #ffd1e63a}
+
+.theme-twilight .garden{background:linear-gradient(180deg,#dee3ff 0%, #ffe3f7 100%)}
+.theme-twilight .hill{background:radial-gradient(60% 60% at 50% 0%, #cbd7ff, #b9c5ff)}
+.theme-twilight .flower{background:#d3b3ff; box-shadow:0 0 0 6px #d3b3ff40}
+
+.theme-blossom .garden{background:linear-gradient(180deg,#fff0f6 0%, #fffaf0 100%)}
+.theme-blossom .hill{background:radial-gradient(60% 60% at 50% 0%, #e8f6ee, #cfeedd)}
+.theme-blossom .flower{background:#ffc7de; box-shadow:0 0 0 6px #ffc7de40}
+
+/* Butterflies */
+.butterfly{position:absolute; width:22px; height:22px; transform-origin:center; animation:flap 1.4s ease-in-out infinite, float linear var(--dur) var(--delay) forwards}
+.butterfly svg{filter:drop-shadow(0 6px 10px rgba(0,0,0,.12))}
+@keyframes flap{0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(2deg) scale(1.06)}}
+@keyframes float{from{transform:translate(var(--x),var(--y))} to{transform:translate(calc(var(--x) + var(--dx)), calc(var(--y) - 420px))}}
+
+/* Pricing / cards */
+.buy{margin-top:28px}
+.buy h4{font-family:"Playfair Display",serif; font-size:18px; margin:0 0 10px}
+.tiers{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+@media (max-width: 900px){ .tiers{grid-template-columns:1fr} }
+.card{background:#fff; border-radius:var(--r-md); padding:16px; box-shadow:0 10px 30px var(--ring); display:flex; align-items:center; justify-content:space-between}
+.card .left{display:flex; gap:10px; align-items:center}
+.badge{display:inline-grid; place-items:center; width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#ffe7f3,#e6f5ff)}
+.qty{font-weight:800; font-size:18px; font-variant-numeric:tabular-nums}
+.price{color:var(--muted); font-weight:600; font-size:14px}
+
+/* Stepper transitions (Creation) */
+.step-viewport{position:relative; overflow:hidden}
+.step-panel{will-change:transform,opacity}
+.slide-forward{animation:stepIn .38s cubic-bezier(.2,.7,.2,1) both}
+.slide-back{animation:stepBack .38s cubic-bezier(.2,.7,.2,1) both}
+@keyframes stepIn{from{opacity:0; transform:translateX(24px)} to{opacity:1; transform:translateX(0)}}
+@keyframes stepBack{from{opacity:0; transform:translateX(-24px)} to{opacity:1; transform:translateX(0)}}
+
+/* Theme tiles */
+.theme{border:2px solid transparent; border-radius:16px; padding:14px; background:#fff; box-shadow:0 10px 30px var(--ring); cursor:pointer}
+.theme:hover{transform:translateY(-1px); transition:transform .12s ease}
+.theme.active{border-color:var(--cta)}
+
+/* ---------- Theme tiles (Step 1) ---------- */
+.theme-tile {
+  display: block;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  cursor: pointer;
+}
+.theme-tile:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+.theme-tile.active { border-color: var(--primary); box-shadow: 0 6px 16px var(--ring); }
+.theme-tile .mini { height: 110px; border-radius: 10px; overflow: hidden; background: #f9fafb; position: relative; }
+.theme-tile .hill { height: 100%; border-radius: 10px; }
+.theme-label { margin-top: 8px; font-weight: 700; }
+
+
+/* Footer */
+footer{margin:20px 0; text-align:center; color:var(--muted); font-size:13px}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .btn, .slide-forward, .slide-back, .butterfly{animation:none; transition:none}
+}
