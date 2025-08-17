@@ -1,0 +1,108 @@
+/* =========================================================
+   Spirit Butterfly — Global Stylesheet (Landing + Creation)
+   Responsive, larger typography. Prevents overflow.
+   ========================================================= */
+
+   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@500;700&display=swap');
+
+   :root{
+     --bg-1:#f7f5f2; --bg-2:#f0f7ff; --ink:#1f2a37; --muted:#5b6470;
+     --accent:#6c62ff; --accent-2:#6ec3ff; --cta:#5e8b7e; --cta-ink:#fff;
+     --card:#ffffffcc; --ring:#00000012;
+   
+     --radius-lg:42px; --radius-md:28px; --radius-sm:20px;
+   }
+   
+   html, body, #root{height:100%; width:100%}
+   body{margin:0; font-size:20px}
+   
+   .page{
+     min-height:100vh; min-height:100dvh; min-width:100vw;
+     color:var(--ink);
+     background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+     font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+     display:flex; flex-direction:column; overflow-x:hidden;
+   }
+   
+   .wrap{
+     flex:1; display:flex; flex-direction:column; width:100%;
+     max-width:clamp(960px, 92vw, 1500px);
+     margin:0 auto; padding:clamp(24px,4vw,60px) clamp(16px,4.5vw,40px);
+     box-sizing:border-box;
+   }
+   
+   .full-page .wrap.full-wrap{max-width:none; width:100%; padding-inline:clamp(16px,5vw,56px)}
+   
+   header{display:flex; align-items:center; justify-content:space-between; gap:clamp(16px,4vw,40px)}
+   .brand{display:flex; align-items:center; gap:clamp(10px,1.6vw,20px); text-decoration:none; color:inherit; min-width:0}
+   .logo{width:clamp(40px,6vw,80px); height:clamp(40px,6vw,80px); display:grid; place-items:center; border-radius:var(--radius-sm); background:radial-gradient(circle at 30% 30%, #ffd1e6, #b7e7ff 60%, #ffffff 100%); box-shadow:0 12px 30px var(--ring); flex-shrink:0}
+   .h1{font-family:"Playfair Display",serif; font-weight:700; letter-spacing:.3px; font-size:clamp(20px,2.2vw,44px); margin:0; line-height:1; white-space:nowrap}
+   nav{display:flex; gap:clamp(12px,2.4vw,32px); align-items:center}
+   nav a{color:var(--muted); text-decoration:none; font-weight:700; font-size:clamp(16px,1.8vw,24px); line-height:1; display:flex; align-items:center}
+   nav a:hover{color:var(--ink)}
+   .signin{padding:clamp(8px,1.2vw,18px) clamp(10px,1.8vw,26px); border-radius:clamp(10px,1.4vw,18px); background:#ffffffaa; box-shadow:0 12px 30px var(--ring); backdrop-filter:blur(6px); font-size:clamp(14px,1.6vw,22px); line-height:1; display:flex; align-items:center}
+   
+   .hero{position:relative; margin-top:clamp(28px,5vw,80px); display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(14px,3.5vw,48px); align-items:center; flex:1; min-width:0}
+   .hero > *{min-width:0}
+   @media (max-width: 1200px){ .hero{grid-template-columns:1fr} }
+   
+   .hero.full-hero{grid-template-columns:2fr 1fr}
+   @media (max-width: 1200px){ .hero.full-hero{grid-template-columns:1fr} }
+   
+   .hero-card{background:var(--card); border-radius:var(--radius-lg); padding:clamp(24px,4vw,72px); box-shadow:0 28px 84px var(--ring); backdrop-filter:blur(10px)}
+   
+   .eyebrow{display:inline-grid; place-items:center; font-size:clamp(12px,1.4vw,24px); letter-spacing:.6px; text-transform:uppercase; padding:clamp(6px,1vw,16px) clamp(8px,1.6vw,22px); border-radius:999px; background:#ffffffb8; color:#5a6472; font-weight:800; box-shadow:0 12px 30px var(--ring)}
+   
+   h2{font-family:"Playfair Display",serif; font-size:clamp(42px, 8vw, 96px); line-height:1.06; margin:clamp(12px,2vw,28px) 0 clamp(8px,1.6vw,22px)}
+   .sub{font-size:clamp(16px,2.2vw,34px); color:var(--muted); line-height:1.65; overflow-wrap:anywhere}
+   
+   .cta-row{display:flex; gap:clamp(10px,2vw,28px); flex-wrap:wrap; margin-top:clamp(16px,3vw,42px)}
+   .btn{appearance:none; border:none; cursor:pointer; border-radius:clamp(12px,2vw,24px); font-weight:800; font-size:clamp(16px,2vw,30px); padding:clamp(12px,2vw,26px) clamp(16px,3vw,36px); min-height:clamp(44px,7vh,80px); transition:transform .06s ease, box-shadow .2s ease; line-height:1; display:inline-flex; align-items:center; justify-content:center}
+   .btn:active{transform:translateY(1px)}
+   .btn.primary{background:var(--cta); color:var(--cta-ink); box-shadow:0 18px 52px rgba(58,110,96,.25)}
+   .btn.primary:hover{box-shadow:0 26px 64px rgba(58,110,96,.35)}
+   .btn.ghost{background:#ffffff; color:var(--ink); box-shadow:0 12px 30px var(--ring)}
+   
+   .in{border:1px solid #e7ebef; border-radius:clamp(12px,1.8vw,20px); padding:clamp(12px,1.8vw,22px) clamp(12px,2vw,24px); background:#fff; font-size:clamp(16px,2vw,26px); width:100%; max-width:100%; box-sizing:border-box}
+   
+   .right{position:relative; height:100%; min-height:clamp(360px, 55vh, 720px); background:radial-gradient(80% 60% at 50% 55%, #ffffffee, #ffffff88 60%, #ffffff00 100%); border-radius:var(--radius-lg); box-shadow:0 28px 84px var(--ring); overflow:hidden; flex:1}
+   .garden{position:absolute; inset:0; background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
+   .hill{position:absolute; bottom:-10%; width:160%; left:-30%; height:70%; background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc); border-radius:50%}
+   .flower{position:absolute; width:clamp(10px,2vw,22px); height:clamp(10px,2vw,22px); background:#ffd1e6; border-radius:50%; box-shadow:0 0 0 clamp(6px,1.6vw,12px) #ffd1e63a}
+   
+   .butterfly{position:absolute; width:clamp(20px,3.5vw,44px); height:clamp(20px,3.5vw,44px); transform-origin:center; animation:flap 1.4s ease-in-out infinite, float linear var(--dur) var(--delay) forwards}
+   .butterfly svg{filter:drop-shadow(0 10px 16px rgba(0,0,0,.12))}
+   @keyframes flap{0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(2deg) scale(1.08)}}
+   @keyframes float{from{transform:translate(var(--x),var(--y))} to{transform:translate(calc(var(--x) + var(--dx)), calc(var(--y) - 60vh))}}
+   
+   .buy{margin-top:clamp(24px,5vw,80px)}
+   .buy h4{font-family:"Playfair Display",serif; font-size:clamp(18px,2.4vw,40px); margin:0 0 clamp(8px,1.6vw,20px)}
+   .tiers{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:clamp(12px,2.2vw,28px)}
+   .card{background:#ffffff; border-radius:var(--radius-md); padding:clamp(16px,2.6vw,36px); box-shadow:0 18px 52px var(--ring); display:flex; align-items:center; justify-content:space-between; min-width:0}
+   .card .left{display:flex; gap:clamp(10px,1.8vw,22px); align-items:center; min-width:0}
+   .badge{display:inline-grid; place-items:center; width:clamp(40px,5vw,72px); height:clamp(40px,5vw,72px); border-radius:clamp(12px,2vw,20px); background:linear-gradient(135deg,#ffe7f3,#e6f5ff)}
+   .qty{
+    font-weight:900;
+    font-size:clamp(18px,2.2vw,32px);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:.01em;
+  }
+  .price{
+    color:var(--muted);
+    font-weight:700;
+    font-size:clamp(14px,1.9vw,24px);
+    white-space:nowrap;
+  }
+   
+   .dot{width:clamp(28px,3.4vw,44px); height:clamp(28px,3.4vw,44px); border-radius:999px; display:grid; place-items:center; background:#fff; box-shadow:0 12px 30px var(--ring); color:var(--muted); font-weight:800; font-size:clamp(14px,1.8vw,22px)}
+   .dot.active{background:var(--cta); color:#fff}
+   .sep{height:clamp(2px, .5vw, 4px); width:clamp(22px,3.4vw,44px); background:#d6e2e0; border-radius:2px}
+   
+   .fade{opacity:0; transform:translateY(10px); transition:opacity .35s ease, transform .35s ease}
+   .fade.in{opacity:1; transform:translateY(0)}
+   
+   .theme{border:2px solid transparent; border-radius:clamp(16px,2.4vw,28px); padding:clamp(12px,2vw,26px); background:#fff; box-shadow:0 18px 52px var(--ring); cursor:pointer; font-size:clamp(16px,2vw,26px)}
+   .theme.active{border-color:var(--cta)}
+   
+   footer{margin:clamp(16px,3vw,42px) 0; text-align:center; color:var(--muted); font-size:clamp(14px,1.8vw,22px)}
