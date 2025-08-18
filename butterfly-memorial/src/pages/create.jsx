@@ -65,6 +65,7 @@ export default function Creation(){
       last_name: form.lastName,
       dates: form.dates,
       obit: form.message,
+      photo: form.photo,
       created: new Date()
     })
     console.log('Garden created:', docRef.id)
