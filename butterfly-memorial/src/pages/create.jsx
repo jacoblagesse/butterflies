@@ -175,10 +175,10 @@ export default function Creation(){
                 </div>
               )} */}
 
+              {/*This is actually step four*/}
               {step===3 && (
                 <div className={`step-panel ${dir==='forward'?'slide-forward':'slide-back'}`}>
                   <h2 className="h2">Preview</h2>
-                  <p className="sub">This is a demo preview — nothing is saved.</p>
                   <div className={`right theme-${theme}`} style={{minHeight:360}} aria-hidden="true">
                     <div className="garden">
                       <div className="hill"/>
@@ -201,7 +201,24 @@ export default function Creation(){
                   </div> */}
                   <div className="cta-row" style={{justifyContent:'space-between'}}>
                     <button className="btn ghost" onClick={back}>Back</button>
-                    <button className="btn primary" onClick={createGardenHandler}>Create Garden</button>
+                    <button
+                      className="btn primary"
+                      onClick={() =>
+                        navigate('/garden', {
+                          state: {
+                            theme,          
+                            form,           
+                            butterflies: [  
+                              { id: 'b1', from: 'Alex', message: 'Thinking of you.' },
+                              { id: 'b2', from: 'Sam',  message: 'Forever in our hearts.' },
+                            ],
+                          },
+                        })
+                      }
+                      >
+                        Open Garden
+                      </button>
+
                   </div>
                 </div>
               )}
