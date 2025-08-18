@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom'
+import { doc, getDoc, addDoc, collection, query, where, onSnapshot } from 'firebase/firestore'
+import { db } from '../firebase'
 import './spirit-butterfly.css';
 
 export default function Garden(){
@@ -8,29 +11,102 @@ export default function Garden(){
   const stageRef = useRef(null);
 
   const theme = state?.theme || 'serene';
-  const form  = state?.form  || { firstName:'First', lastName:'Last', dates:'—', message:'A few words…', photo:'' };
-  const initial = state?.butterflies || [
-    { id: 'b1', from: 'Alex', message: 'Thinking of you.' },
-    { id: 'b2', from: 'Sam',  message: 'Forever in our hearts.' },
-  ];
 
-  const [butterflies, setButterflies] = useState(initial);
+  const { gardenId } = useParams()
+  const [garden, setGarden] = useState(null)
+  const [honoree, setHonoree] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const [butterflies, setButterflies] = useState();
   const [highlightedId, setHighlightedId] = useState(null);
-  const fullName = useMemo(() => `${form.firstName||'First'} ${form.lastName||'Last'}`.trim(), [form]);
   const makeId   = () => Math.random().toString(36).slice(2, 9);
 
   // rotate a random butterfly's label every ~20s
+  // useEffect(() => {
+  //   if (butterflies.length === 0) return;
+  //   let timer;
+  //   const choose = () => {
+  //     const random = butterflies[Math.floor(Math.random() * butterflies.length)];
+  //     setHighlightedId(random.id);
+  //     timer = setTimeout(choose, 20000);
+  //   };
+  //   choose();
+  //   return () => clearTimeout(timer);
+  // }, [butterflies]);
+
   useEffect(() => {
-    if (butterflies.length === 0) return;
-    let timer;
-    const choose = () => {
-      const random = butterflies[Math.floor(Math.random() * butterflies.length)];
-      setHighlightedId(random.id);
-      timer = setTimeout(choose, 20000);
-    };
-    choose();
-    return () => clearTimeout(timer);
-  }, [butterflies]);
+    if (!gardenId) return
+  
+    const fetchData = async () => {
+      try {
+        // Fetch garden info
+        const gardenDoc = doc(db, 'gardens', gardenId)
+        const gardenSnap = await getDoc(gardenDoc)
+        
+        if (gardenSnap.exists()) {
+          const gardenDataLocal = gardenSnap.data()
+          setGarden({ id: gardenSnap.id, ...gardenSnap.data() })
+          console.log(gardenSnap)
+
+          const honoreeSnap = await getDoc(gardenDataLocal.honoree)
+          
+          if (honoreeSnap.exists()) {
+            await setHonoree({ id: honoreeSnap.id, ...honoreeSnap.data() })
+          } else {
+            setError('Honoree not found')
+          }
+          
+        } else {
+          setError('Garden not found')
+        }
+        
+        setLoading(false)
+      } catch (err) {
+        setError('Error loading garden: ' + err.message)
+        setLoading(false)
+      }
+    }
+  
+    // Set up real-time butterflies listener
+    const q = query(collection(db, 'butterflies'), where('gardenId', '==', gardenId))
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const butterflyList = []
+      querySnapshot.forEach((doc) => {
+        butterflyList.push({ id: doc.id, ...doc.data() })
+      })
+      setButterflies(butterflyList)
+    })
+  
+    fetchData()
+  
+    return unsubscribe
+  }, [gardenId])
+  
+
+  if (loading) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>Loading garden...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>
+        <p>{error}</p>
+      </div>
+    )
+  }
+
+  if (!garden) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>Garden not found</p>
+      </div>
+    )
+  }
 
   return (
     <div className="page full-page" style={{position:'relative'}}>
@@ -56,7 +132,7 @@ export default function Garden(){
               <FlyingButterfly
                 key={b.id}
                 seed={hashSeed(b.id, i)}
-                label={`${b.from}: ${b.message}`}
+                label={`${b.gifter}: ${b.message}`}
                 forceShow={highlightedId === b.id}
                 containerRef={stageRef}
               />
@@ -64,20 +140,20 @@ export default function Garden(){
 
             {/* Identity card */}
             <div className="identity-card" style={{zIndex:22}}>
-              {form.photo
-                ? <img src={form.photo} alt="" className="identity-photo" />
+              {honoree.photo
+                ? <img src={honoree.photo} alt="" className="identity-photo" />
                 : <div className="identity-photo placeholder" />
               }
               <div>
-                <div className="identity-name">{fullName}</div>
-                <div className="sub">{form.dates || '—'}</div>
+                <div className="identity-name">{`${honoree.first_name} ${honoree.last_name}`}</div>
+                <div className="sub">{honoree.dates || '—'}</div>
               </div>
             </div>
 
             {/* Bottom message ribbon */}
             <div className="message-ribbon">
               <div className="sub" style={{textAlign:'center'}}>
-                {form.message || 'This garden is a serene space for memories and butterflies.'}
+                {honoree.message || 'This garden is a serene space for memories and butterflies.'}
               </div>
             </div>
 
@@ -90,6 +166,7 @@ export default function Garden(){
                   ...entries.map(e => ({ id: makeId(), from: e.from, message: e.message }))
                 ]);
               }}
+              gardenId={gardenId}
             />
           </div>
         </main>
@@ -198,19 +275,29 @@ function FlyingButterfly({ seed=1, label='', forceShow=false, containerRef }){
   );
 }
 
-function GardenControls({ butterflies, onAdd }) {
+function GardenControls({ butterflies, onAdd, gardenId }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [msg,  setMsg]  = useState('');
   const [qty,  setQty]  = useState('1');
 
-  const release = () => {
-    const count = Math.max(1, Math.min(parseInt(qty || '1', 10), 50));
-    const entries = Array.from({ length: count }).map(() => ({
-      from: name || 'Someone',
-      message: msg || '🦋'
-    }));
-    onAdd(entries);
+  const createButterfly = async () => {
+    const gardenRef = doc(db, 'gardens', gardenId)
+
+    const docRef = await addDoc(collection(db, 'butterflies'), {
+      gifter: name,
+      message: msg,
+      garden: gardenRef,
+      gardenId: gardenId,
+      created: new Date()
+    })
+    console.log('Butterfly created:', docRef.id)
+    return docRef.id
+  }
+
+  const release = async () => {
+    const butterflyId = await createButterfly()
+
     setOpen(null);
     setName(''); setMsg(''); setQty('1');
   };
@@ -239,13 +326,6 @@ function GardenControls({ butterflies, onAdd }) {
         <div style={{display:'grid', gap:12}}>
           <input className="in" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} />
           <input className="in" placeholder="Short message" value={msg} onChange={e=>setMsg(e.target.value)} />
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
-            {[1,5,20].map(n => (
-              <button key={n} className={`btn ${qty===(n+'')?'primary':'ghost'}`} onClick={()=>setQty(n+'')}>
-                {n} {n===1 ? 'Butterfly' : 'Butterflies'}
-              </button>
-            ))}
-          </div>
           <div className="cta-row" style={{justifyContent:'flex-end', marginTop:4}}>
             <button className="btn primary" onClick={release}>Release</button>
           </div>

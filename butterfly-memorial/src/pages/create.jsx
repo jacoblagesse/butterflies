@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './spirit-butterfly.css';
 
 import { db } from '../firebase'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, getDoc, doc } from 'firebase/firestore'
 
 export default function Creation(){
   const navigate = useNavigate();
@@ -40,11 +40,12 @@ export default function Creation(){
 
   // Firebase methods
   const createGarden = async () => {
+    const honoreeRef = doc(db, 'honoree', currentHonoree)
     const docRef = await addDoc(collection(db, 'gardens'), {
       name: 'Test Garden',
       user: '/users/XQqCDa1Xcim1d4D6kp1A',
       style: theme,
-      honoree: `/honoree/${currentHonoree}`,
+      honoree: honoreeRef,
       created: new Date()
     })
     console.log('Garden created:', docRef.id)
@@ -53,6 +54,9 @@ export default function Creation(){
 
   const createGardenHandler = async () => {
     const gardenId = await createGarden()
+    console.log(gardenId)
+
+    navigate(`/garden/${gardenId}`)
   }
 
   const createHonoree = async () => {
@@ -203,18 +207,7 @@ export default function Creation(){
                     <button className="btn ghost" onClick={back}>Back</button>
                     <button
                       className="btn primary"
-                      onClick={() =>
-                        navigate('/garden', {
-                          state: {
-                            theme,          
-                            form,           
-                            butterflies: [  
-                              { id: 'b1', from: 'Alex', message: 'Thinking of you.' },
-                              { id: 'b2', from: 'Sam',  message: 'Forever in our hearts.' },
-                            ],
-                          },
-                        })
-                      }
+                      onClick={createGardenHandler}
                       >
                         Open Garden
                       </button>
