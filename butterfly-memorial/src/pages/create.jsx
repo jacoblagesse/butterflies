@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './spirit-butterfly.css';
 
+import { db } from '../firebase'
+import { collection, addDoc } from 'firebase/firestore'
+
 export default function Creation(){
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -9,22 +12,67 @@ export default function Creation(){
 
   const [theme, setTheme] = useState('serene');
   const [form, setForm] = useState({ firstName:'', lastName:'', dates:'', message:'', photo:'' });
-  const [extras, setExtras] = useState({ pack:'1', ribbon:false, candle:false, music:false });
+  //const [extras, setExtras] = useState({ pack:'1', ribbon:false, candle:false, music:false });
+  const [currentHonoree, setCurrentHonoree] = useState("")
 
-  const total = useMemo(()=>{
-    const base = extras.pack==='1' ? 300 : extras.pack==='5' ? 1200 : 4200;
-    return base + (extras.ribbon?200:0) + (extras.candle?300:0) + (extras.music?200:0);
-  },[extras]);
+  // const total = useMemo(()=>{
+  //   const base = extras.pack==='1' ? 300 : extras.pack==='5' ? 1200 : 4200;
+  //   return base + (extras.ribbon?200:0) + (extras.candle?300:0) + (extras.music?200:0);
+  // },[extras]);
 
+  // TODO: This animation should become a helper function in another file as it is used in multiple places
   const prevRef = useRef(null);
   useEffect(()=>{
-    if(step!==4) return; const el = prevRef.current; if(!el) return; el.innerHTML = '';
+    if(step!==4) 
+      return; 
+    
+    const el = prevRef.current; 
+    if(!el) 
+      return; 
+    el.innerHTML = '';
+    
     const add=(x,y,dx,delay,dur)=>{ const d=document.createElement('div'); d.className='butterfly'; d.style.setProperty('--x',x+'px'); d.style.setProperty('--y',y+'px'); d.style.setProperty('--dx',dx+'px'); d.style.setProperty('--delay',delay+'ms'); d.style.setProperty('--dur',dur+'ms'); d.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5c1.6 0 2.6.3 3.6 1.3S17 8.4 17 10c-1.3-.3-2.3-.7-3.6-1.9C12.5 7 12 6 12 5Z" fill="#6c62ff"/><path d="M12 5c-1.6 0-2.6.3-3.6 1.3S7 8.4 7 10c1.3-.3 2.3-.7 3.6-1.9C11.5 7 12 6 12 5Z" fill="#6ec3ff"/><circle cx="12" cy="12" r="1" fill="#2f3a4c"/></svg>`; el.appendChild(d); };
     for(let i=0;i<14;i++){ add(40+Math.random()*420, 160+Math.random()*240, -70+Math.random()*140, Math.random()*2200, 9000+Math.random()*5000); }
   },[step]);
 
   const next = ()=>{ setDir('forward'); setStep(s=> Math.min(4, s+1)); };
   const back = ()=>{ setDir('back');    setStep(s=> Math.max(1, s-1)); };
+
+  // Firebase methods
+  const createGarden = async () => {
+    const docRef = await addDoc(collection(db, 'gardens'), {
+      name: 'Test Garden',
+      user: '/users/XQqCDa1Xcim1d4D6kp1A',
+      style: theme,
+      honoree: `/honoree/${currentHonoree}`,
+      created: new Date()
+    })
+    console.log('Garden created:', docRef.id)
+    return docRef.id
+  }
+
+  const createGardenHandler = async () => {
+    const gardenId = await createGarden()
+  }
+
+  const createHonoree = async () => {
+    const docRef = await addDoc(collection(db, 'honoree'), {
+      first_name: form.firstName,
+      last_name: form.lastName,
+      dates: form.dates,
+      obit: form.message,
+      created: new Date()
+    })
+    console.log('Garden created:', docRef.id)
+    return docRef.id
+  }
+
+  const createHonoreeHandler = async () => {
+    const honoreeId = await createHonoree()
+
+    setCurrentHonoree(honoreeId)
+    next()
+  }
 
   return (
     <div className="page full-page">
@@ -89,12 +137,12 @@ export default function Creation(){
                   </div>
                   <div className="cta-row" style={{justifyContent:'space-between'}}>
                     <button className="btn ghost" onClick={back}>Back</button>
-                    <button className="btn primary" onClick={next}>Next</button>
+                    <button className="btn primary" onClick={createHonoreeHandler}>Next</button>
                   </div>
                 </div>
               )}
 
-              {step===3 && (
+              {/* {step===3 && (
                 <div className={`step-panel ${dir==='forward'?'slide-forward':'slide-back'}`}>
                   <h2 className="h2">Extras</h2>
                   <p className="sub">Add butterflies and gentle touches.</p>
@@ -125,9 +173,9 @@ export default function Creation(){
                     <button className="btn primary" onClick={next}>Preview</button>
                   </div>
                 </div>
-              )}
+              )} */}
 
-              {step===4 && (
+              {step===3 && (
                 <div className={`step-panel ${dir==='forward'?'slide-forward':'slide-back'}`}>
                   <h2 className="h2">Preview</h2>
                   <p className="sub">This is a demo preview — nothing is saved.</p>
@@ -147,13 +195,13 @@ export default function Creation(){
                       </div>
                     </div>
                   </div>
-                  <div className="card" style={{marginTop:12, display:'flex', justifyContent:'space-between'}}>
+                  {/* <div className="card" style={{marginTop:12, display:'flex', justifyContent:'space-between'}}>
                     <strong>Total</strong>
                     <strong>¥{total.toLocaleString()}</strong>
-                  </div>
+                  </div> */}
                   <div className="cta-row" style={{justifyContent:'space-between'}}>
                     <button className="btn ghost" onClick={back}>Back</button>
-                    <button className="btn primary" onClick={()=>navigate('/')}>Looks good (no data saved)</button>
+                    <button className="btn primary" onClick={createGardenHandler}>Create Garden</button>
                   </div>
                 </div>
               )}
