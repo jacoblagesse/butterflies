@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<GardenCreation />} />
-        <Route path="/garden" element={<Garden />} />
+        <Route path="/garden/:gardenId" element={<Garden />} />
       </Routes>
     </Router>
   )
