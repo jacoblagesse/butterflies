@@ -104,22 +104,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 
 /* Visual pane (garden preview) */
 .right{position:relative; height:100%; min-height:420px; background:radial-gradient(80% 60% at 50% 55%, #ffffffee, #ffffff88 60%, #ffffff00 100%); border-radius:var(--r-lg); box-shadow:0 20px 60px var(--ring); overflow:hidden}
-.garden{position:absolute; inset:0; background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
-.hill{position:absolute; bottom:-10%; width:140%; left:-20%; height:60%; background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc); border-radius:50%}
-.flower{position:absolute; width:10px; height:10px; background:#ffd1e6; border-radius:50%; box-shadow:0 0 0 6px #ffd1e63a}
-
-/* Themes for gardens */
-.theme-serene .garden{background:linear-gradient(180deg,#eaf7ff 0%, #fff7fb 100%)}
-.theme-serene .hill{background:radial-gradient(60% 60% at 50% 0%, #d6f0df, #b7e6cc)}
-.theme-serene .flower{background:#ffd1e6; box-shadow:0 0 0 6px #ffd1e63a}
-
-.theme-twilight .garden{background:linear-gradient(180deg,#dee3ff 0%, #ffe3f7 100%)}
-.theme-twilight .hill{background:radial-gradient(60% 60% at 50% 0%, #cbd7ff, #b9c5ff)}
-.theme-twilight .flower{background:#d3b3ff; box-shadow:0 0 0 6px #d3b3ff40}
-
-.theme-blossom .garden{background:linear-gradient(180deg,#fff0f6 0%, #fffaf0 100%)}
-.theme-blossom .hill{background:radial-gradient(60% 60% at 50% 0%, #e8f6ee, #cfeedd)}
-.theme-blossom .flower{background:#ffc7de; box-shadow:0 0 0 6px #ffc7de40}
+.garden{position:absolute; inset:0;}
 
 /* Butterflies */
 .butterfly{position:absolute; width:22px; height:22px; transform-origin:center; animation:flap 1.4s ease-in-out infinite, float linear var(--dur) var(--delay) forwards}

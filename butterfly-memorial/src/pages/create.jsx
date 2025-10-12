@@ -5,22 +5,25 @@ import './spirit-butterfly.css';
 import { db } from '../firebase'
 import { collection, addDoc, getDoc, doc } from 'firebase/firestore'
 
+import FlowersBackground from '../assets/backgrounds/background__homepage.png';
+import MountainBackground from '../assets/backgrounds/background_mountain__HD_50000.png';
+import MountainBackgroundGif from '../assets/backgrounds/background_mountain__HD.gif';
+
+const BACKGROUNDS = [
+  { key: 'flowers', label: 'Flowers', path: FlowersBackground },
+  { key: 'mountain', label: 'Mountain', path: MountainBackground },
+  { key: 'video', label: 'Mountain (Animated)', path: MountainBackgroundGif },
+];
+
 export default function Creation(){
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState('forward');
 
-  const [theme, setTheme] = useState('serene');
+  const [theme, setTheme] = useState({ key: 'flowers', path: BACKGROUNDS[0].path });
   const [form, setForm] = useState({ firstName:'', lastName:'', dates:'', message:'', photo:'' });
-  //const [extras, setExtras] = useState({ pack:'1', ribbon:false, candle:false, music:false });
   const [currentHonoree, setCurrentHonoree] = useState("")
 
-  // const total = useMemo(()=>{
-  //   const base = extras.pack==='1' ? 300 : extras.pack==='5' ? 1200 : 4200;
-  //   return base + (extras.ribbon?200:0) + (extras.candle?300:0) + (extras.music?200:0);
-  // },[extras]);
-
-  // TODO: This animation should become a helper function in another file as it is used in multiple places
   const prevRef = useRef(null);
   useEffect(()=>{
     if(step!==4) 
@@ -44,7 +47,7 @@ export default function Creation(){
     const docRef = await addDoc(collection(db, 'gardens'), {
       name: 'Test Garden',
       user: '/users/XQqCDa1Xcim1d4D6kp1A',
-      style: theme,
+      style: theme.key,
       honoree: honoreeRef,
       created: new Date()
     })
@@ -80,7 +83,15 @@ export default function Creation(){
   }
 
   return (
-    <div className="page full-page">
+    <div 
+      className="page full-page"
+      style={{
+        backgroundImage: `url(${theme.path})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <div className="wrap full-wrap">
         <header>
           <Link className="brand" to="/">
@@ -114,8 +125,12 @@ export default function Creation(){
                   <h2 className="h2">Pick a garden</h2>
                   <p className="sub">Choose a style. You can change it later.</p>
                   <div style={{display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12}}>
-                    {[{key:'serene', label:'Serene'}, {key:'twilight', label:'Twilight'}, {key:'blossom', label:'Blossom'}].map(t => (
-                      <button key={t.key} className={`theme-tile ${theme===t.key?'active':''}`} onClick={()=>setTheme(t.key)}>
+                    {BACKGROUNDS.map(t => (
+                      <button 
+                        key={t.key} 
+                        className={`theme-tile ${theme.key===t.key?'active':''}`} 
+                        onClick={()=>setTheme({ key: t.key, path: t.path })}
+                      >
                         <div className={`theme-preview theme-${t.key}`} />
                         <div style={{marginTop:8, fontWeight:700}}>{t.label}</div>
                       </button>
@@ -147,44 +162,11 @@ export default function Creation(){
                 </div>
               )}
 
-              {/* {step===3 && (
-                <div className={`step-panel ${dir==='forward'?'slide-forward':'slide-back'}`}>
-                  <h2 className="h2">Extras</h2>
-                  <p className="sub">Add butterflies and gentle touches.</p>
-                  <div className="card" style={{marginBottom:12, display:'flex', gap:8, alignItems:'center', justifyContent:'center'}}>
-                    {["1","5","20"].map(q => (
-                      <button key={q} className={`btn ${extras.pack===q?'primary':'ghost'}`} onClick={()=>setExtras({...extras, pack:q})}>{q} {q==="1"?"Butterfly":"Butterflies"}</button>
-                    ))}
-                  </div>
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-                    <label className="card" style={{display:'flex', alignItems:'center', gap:10}}>
-                      <input type="checkbox" checked={extras.ribbon} onChange={e=>setExtras({...extras, ribbon:e.target.checked})}/>
-                      <div>Remembrance ribbon</div>
-                      <div className="price" style={{marginLeft:'auto'}}>+¥200</div>
-                    </label>
-                    <label className="card" style={{display:'flex', alignItems:'center', gap:10}}>
-                      <input type="checkbox" checked={extras.candle} onChange={e=>setExtras({...extras, candle:e.target.checked})}/>
-                      <div>Virtual candle</div>
-                      <div className="price" style={{marginLeft:'auto'}}>+¥300</div>
-                    </label>
-                  </div>
-                  <label className="card" style={{display:'flex', alignItems:'center', gap:10, marginTop:12}}>
-                    <input type="checkbox" checked={extras.music} onChange={e=>setExtras({...extras, music:e.target.checked})}/>
-                    <div>Gentle music</div>
-                    <div className="price" style={{marginLeft:'auto'}}>+¥200</div>
-                  </label>
-                  <div className="cta-row" style={{justifyContent:'space-between'}}>
-                    <button className="btn ghost" onClick={back}>Back</button>
-                    <button className="btn primary" onClick={next}>Preview</button>
-                  </div>
-                </div>
-              )} */}
-
               {/*This is actually step four*/}
               {step===3 && (
                 <div className={`step-panel ${dir==='forward'?'slide-forward':'slide-back'}`}>
                   <h2 className="h2">Preview</h2>
-                  <div className={`right theme-${theme}`} style={{minHeight:360}} aria-hidden="true">
+                  <div className={`right theme-${theme.key}`} style={{minHeight:360}} aria-hidden="true">
                     <div className="garden">
                       <div className="hill"/>
                       <div id="preview-butterflies" ref={prevRef} />
@@ -200,10 +182,6 @@ export default function Creation(){
                       </div>
                     </div>
                   </div>
-                  {/* <div className="card" style={{marginTop:12, display:'flex', justifyContent:'space-between'}}>
-                    <strong>Total</strong>
-                    <strong>¥{total.toLocaleString()}</strong>
-                  </div> */}
                   <div className="cta-row" style={{justifyContent:'space-between'}}>
                     <button className="btn ghost" onClick={back}>Back</button>
                     <button
