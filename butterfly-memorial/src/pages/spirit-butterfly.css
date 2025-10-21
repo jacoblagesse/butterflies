@@ -88,9 +88,11 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 
 /* Buttons (tactile) */
 .cta-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:20px}
-.btn{position:relative; isolation:isolate; appearance:none; border:none; cursor:pointer; border-radius:14px; font-weight:800; font-size:var(--fs-btn); padding:12px 16px; min-height:44px; line-height:1; display:inline-flex; align-items:center; justify-content:center; transition:transform .06s ease, box-shadow .25s ease, background .25s ease}
-.btn:active{transform:translateY(1px)}
+.btn{position:relative; isolation:isolate; appearance:none; border:none; cursor:pointer; border-radius:14px; font-weight:800; font-size:var(--fs-btn); padding:12px 16px; min-height:44px; line-height:1; display:inline-flex; align-items:center; justify-content:center; transition:transform .12s cubic-bezier(.4,1.4,.6,1), box-shadow .25s ease, background .25s ease; text-decoration:none;}
+.btn:active{transform:scale(.97)}
+.btn:focus, .btn:visited, .btn:hover{ text-decoration:none; }
 .btn::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; box-shadow:0 6px 16px rgba(0,0,0,.16); opacity:0; transition:opacity .25s ease}
+.btn:hover{transform:scale(1.04); box-shadow:0 10px 32px rgba(58,110,96,.18)}
 .btn:hover::after{opacity:1}
 .btn.primary{background:var(--cta); color:var(--cta-ink)}
 .btn.primary:hover{box-shadow:0 14px 30px rgba(58,110,96,.28)}
@@ -103,7 +105,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 .in{border:1px solid #e7ebef; border-radius:12px; padding:12px 14px; background:#fff; font-size:16px; width:100%; box-sizing:border-box}
 
 /* Visual pane (garden preview) */
-.right{position:relative; height:100%; min-height:420px; background:radial-gradient(80% 60% at 50% 55%, #ffffffee, #ffffff88 60%, #ffffff00 100%); border-radius:var(--r-lg); box-shadow:0 20px 60px var(--ring); overflow:hidden}
+.right{position:relative; height:100%; min-height:420px; border-radius:var(--r-lg); box-shadow:0 20px 60px var(--ring); overflow:hidden}
 .garden{position:absolute; inset:0;}
 
 /* Butterflies */

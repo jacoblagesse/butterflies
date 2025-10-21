@@ -96,7 +96,7 @@ export default function Creation(){
         <header>
           <Link className="brand" to="/">
             <div className="logo">🦋</div>
-            <h1 className="h1">Spirit Butterfly</h1>
+            <h1 className="h1">Butterfly Memorial</h1>
           </Link>
           <nav>
             <Link to="/">Home</Link>
@@ -106,17 +106,8 @@ export default function Creation(){
 
         <section className="hero" style={{display:'grid', gridTemplateColumns:'1fr', placeItems:'center', padding:'24px'}}>
           <div className="hero-card" style={{width:'min(720px, 100%)'}}>
-            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:16}}>
+            <div style={{display:'flex', alignItems:'center', justifyContent:'flex-start', gap:16}}>
               <span className="eyebrow">Step {step} of 4</span>
-              <div style={{display:'flex', alignItems:'center', gap:10, minWidth:0}}>
-                <div className={`dot ${step>=1?'active':''}`}>1</div>
-                <div className="sep"/>
-                <div className={`dot ${step>=2?'active':''}`}>2</div>
-                <div className="sep"/>
-                <div className={`dot ${step>=3?'active':''}`}>3</div>
-                <div className="sep"/>
-                <div className={`dot ${step>=4?'active':''}`}>4</div>
-              </div>
             </div>
 
             <div className="step-viewport" style={{marginTop:16}}>
