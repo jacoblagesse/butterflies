@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./spirit-butterfly.css"; // shared stylesheet
 
-import FlowersBackground from '../assets/backgrounds/background__homepage.png';
-import MountainBackground from '../assets/backgrounds/background_mountain__HD_50000.png';
+import FlowersBackground from "../assets/backgrounds/background__homepage.png";
+import MountainBackground from "../assets/backgrounds/background_mountain__HD_50000.png";
 
 export default function Landing() {
   useEffect(() => {
@@ -38,12 +38,15 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="page" style={{
-      backgroundImage: `url(${FlowersBackground})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-    }}>
+    <div
+      className="page"
+      style={{
+        backgroundImage: `url(${FlowersBackground})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="wrap">
         <header>
           <Link className="brand" to="/">
@@ -53,29 +56,57 @@ export default function Landing() {
           <nav>
             <Link to="/pricing">Butterflies</Link>
             <Link to="/about">About</Link>
-            <Link className="signin" to="/signin">Sign in</Link>
+            <Link className="signin" to="/signin">
+              Sign in
+            </Link>
           </nav>
         </header>
 
         <section className="hero">
-          <div className="hero-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '340px', padding: '0' }}>
-            <h2 style={{ marginBottom: '2.5rem', fontSize: '2.4rem' }}>Butterfly Memorial Garden</h2>
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <Link className="btn primary" to="/create" style={{ textAlign: 'center', minWidth: '260px', fontSize: '1.25rem', padding: '1rem 2.5rem', borderRadius: '2rem' }}>Create your first Garden</Link>
+          <div
+            className="hero-card"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "340px",
+              padding: "0",
+            }}
+          >
+            <h2 style={{ marginBottom: "2.5rem", fontSize: "2.4rem" }}>Butterfly Memorial Garden</h2>
+            <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+              <Link
+                className="btn primary"
+                to="/create"
+                style={{
+                  textAlign: "center",
+                  minWidth: "260px",
+                  fontSize: "1.25rem",
+                  padding: "1rem 2.5rem",
+                  borderRadius: "2rem",
+                }}
+              >
+                Create your first Garden
+              </Link>
             </div>
           </div>
 
-          <div className="right" aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '340px' }}>
-            <img 
-              src={MountainBackground} 
-              alt="Mountainscape" 
+          <div
+            className="right"
+            aria-hidden="true"
+            style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "340px" }}
+          >
+            <img
+              src={MountainBackground}
+              alt="Mountainscape"
               style={{
-                width: '520px',
-                height: '340px',
-                objectFit: 'cover',
-                borderRadius: '2rem',
-                border: '4px solid #fff',
-                display: 'block',
+                width: "520px",
+                height: "340px",
+                objectFit: "cover",
+                borderRadius: "2rem",
+                border: "4px solid #fff",
+                display: "block",
               }}
             />
           </div>
