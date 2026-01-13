@@ -5,11 +5,12 @@ import "./spirit-butterfly.css";
 import { db } from "../firebase";
 import { collection, addDoc, getDoc, doc } from "firebase/firestore";
 
-import FlowersBackground from "../assets/backgrounds/background__homepage.png";
-import MountainBackground from "../assets/backgrounds/background_mountain__HD_50000.png";
+import LogoUrl from "../assets/logos/logo.svg";
+
 import MountainBackgroundGif from "../assets/backgrounds/background_mountain__HD.gif";
 import TropicalBackgroundGif from "../assets/backgrounds/background_tropical__HD.gif";
 import LakeBackgroundGif from "../assets/backgrounds/background_lake__HD.gif";
+
 
 const BACKGROUNDS = [
   // { key: "flowers", label: "Flowers", path: FlowersBackground },
@@ -24,7 +25,7 @@ export default function Creation() {
   const [dir, setDir] = useState("forward");
 
   const [theme, setTheme] = useState({ key: "flowers", path: BACKGROUNDS[0].path });
-  const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "", photo: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "", obitUrl: "" });
   const [currentHonoree, setCurrentHonoree] = useState("");
 
   const prevRef = useRef(null);
@@ -93,7 +94,7 @@ export default function Creation() {
       last_name: form.lastName,
       dates: form.dates,
       obit: form.message,
-      photo: form.photo,
+      obituary_url: form.obitUrl,
       created: new Date(),
     });
     console.log("Garden created:", docRef.id);
@@ -115,27 +116,49 @@ export default function Creation() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        // Keep viewport fixed; no growth on step change
+        height: "100vh",
+        transition: 'background 300ms ease-in-out',
       }}
     >
-      <div className="wrap full-wrap">
+      <div
+        className="wrap full-wrap"
+        style={{
+          // Flex column: header, content, footer within viewport
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <header>
           <Link className="brand" to="/">
-            <div className="logo">🦋</div>
-            <h1 className="h1">Butterfly Memorial</h1>
+            <img src={LogoUrl} alt="Butterfly Memorial logo" className="logo" />
           </Link>
           <nav>
-            <Link to="/">Home</Link>
-            <Link to="/signin" className="signin">
-              Sign in
-            </Link>
           </nav>
         </header>
 
         <section
           className="hero"
-          style={{ display: "grid", gridTemplateColumns: "1fr", placeItems: "center", padding: "24px" }}
-        >
-          <div className="hero-card" style={{ width: "min(720px, 100%)" }}>
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            placeItems: "center",
+            padding: "24px",
+            // Consume remaining space between header and footer
+            flex: 1,
+            overflow: "hidden",
+            boxSizing: "border-box",
+          }}
+        >          <div
+            className="hero-card"
+            style={{
+              width: "min(720px, 100%)",
+              // Prevent growth; scroll inside when needed
+              maxHeight: "100%",
+              overflow: "auto",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
               <span className="eyebrow">Step {step} of 4</span>
             </div>
@@ -198,9 +221,9 @@ export default function Creation() {
                     />
                     <input
                       className="in"
-                      placeholder="Photo URL (optional)"
-                      value={form.photo}
-                      onChange={(e) => setForm({ ...form, photo: e.target.value })}
+                      placeholder="Obituary URL (optional)"
+                      value={form.obitUrl}
+                      onChange={(e) => setForm({ ...form, obitUrl: e.target.value })}
                     />
                   </div>
                   <div className="cta-row" style={{ justifyContent: "space-between" }}>
@@ -218,7 +241,7 @@ export default function Creation() {
               {step === 3 && (
                 <div className={`step-panel ${dir === "forward" ? "slide-forward" : "slide-back"}`}>
                   <h2 className="h2">Preview</h2>
-                  <div className={`right theme-${theme.key}`} style={{ minHeight: 360 }} aria-hidden="true">
+                  <div className={`right theme-${theme.key}`} style={{ minHeight: 200 }} aria-hidden="true">
                     <div className="garden">
                       <div className="hill" />
                       <div id="preview-butterflies" ref={prevRef} />
@@ -233,15 +256,6 @@ export default function Creation() {
                           gap: 10,
                         }}
                       >
-                        {form.photo ? (
-                          <img
-                            src={form.photo}
-                            alt=""
-                            style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 16 }}
-                          />
-                        ) : (
-                          <div style={{ width: 64, height: 64, borderRadius: 16, background: "#fff" }} />
-                        )}
                         <div>
                           <div className="h3" style={{ margin: 0 }}>
                             {form.firstName || "First"} {form.lastName || "Last"}
@@ -278,7 +292,6 @@ export default function Creation() {
           </div>
         </section>
 
-        <footer>© {new Date().getFullYear()} Spirit Butterfly • Creator (demo)</footer>
       </div>
     </div>
   );

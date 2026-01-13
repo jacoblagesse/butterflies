@@ -61,9 +61,9 @@ body{margin:0; font-size:var(--fs-base);}
 /* Header */
 header{display:flex; align-items:center; justify-content:space-between; gap:20px}
 .brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit}
-.logo{width:40px; height:40px; display:grid; place-items:center; border-radius:var(--r-sm);
+.logo{width:180px; height:60px; display:grid; place-items:center; border-radius:var(--r-sm);
   background:radial-gradient(circle at 30% 30%, #ffd1e6, #b7e7ff 60%, #ffffff 100%);
-  box-shadow:0 8px 24px var(--ring);
+  box-shadow:0 8px 24px var(--ring); padding: 10px;
 }
 .h1{font-family:"Playfair Display",serif; font-weight:700; letter-spacing:.3px; font-size:20px; margin:0}
 nav{display:flex; gap:16px; align-items:center}
@@ -72,7 +72,7 @@ nav a:hover{color:var(--ink)}
 .signin{padding:10px 12px; border-radius:10px; background:#ffffffaa; box-shadow:0 8px 24px var(--ring); backdrop-filter:blur(6px)}
 
 /* Hero */
-.hero{position:relative; margin-top:36px; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; flex:1}
+.hero{position:relative; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; flex:1}
 @media (max-width: 992px){ .hero{grid-template-columns:1fr; gap:12px} }
 
 /* Creation page: centered options layout */
@@ -97,6 +97,14 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 .btn.primary{background:var(--cta); color:var(--cta-ink)}
 .btn.primary:hover{box-shadow:0 14px 30px rgba(58,110,96,.28)}
 .btn.ghost{background:#ffffff; color:var(--ink); box-shadow:0 8px 20px var(--ring)}
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
 
 /* Focus ring */
 .btn:focus-visible, .in:focus-visible, a:focus-visible{outline:3px solid color-mix(in srgb, var(--accent) 55%, white); outline-offset:3px; border-radius:14px}
@@ -160,7 +168,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 .garden-stage { position: fixed; inset: 0; border-radius: 0; }
 
 .identity-card {
-  position: absolute; top: 84px; left: 24px; z-index: 22;
+  position: absolute; bottom: 24px; left: 24px; z-index: 22;
   display: flex; align-items: center; gap: 12px;
   background: #ffffffcc; padding: 12px; border-radius: 12px;
   box-shadow: 0 10px 30px var(--ring); backdrop-filter: blur(6px);
@@ -176,7 +184,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 }
 
 /* Controls: avoid overlapping the identity card; move on mobile */
-.garden-controls { position: absolute; right: 24px; top: 120px; display: grid; gap: 10px; z-index: 21; }
+.garden-controls { position: absolute; right: 24px; bottom: 25px; display: grid; gap: 10px; z-index: 21; }
 @media (max-width: 640px) {
   .garden-controls { top: auto; bottom: 24px; right: 24px; }
 }
@@ -213,36 +221,215 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 6vw, 
 .panel-sheet { width: min(680px, 92vw); max-height: 82vh; overflow: auto; position: relative; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 
-
-/* Footer */
-footer{margin:20px 0; text-align:center; color:var(--muted); font-size:13px}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .btn, .slide-forward, .slide-back, .butterfly{animation:none; transition:none}
+/* Swipe container inserted in shop panel */
+.shop-swipe-container {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 130px;   /* was 100px: 1.3x larger squares */
+  gap: 14px;                  /* slightly larger spacing */
+  overflow-x: auto;
+  padding: 20px;              /* scale container padding */
+  margin: 8px 0 16px;
+  -webkit-overflow-scrolling: touch;
+  background: #0f1e3a;           /* dark blue background */
+  border-radius: 12px;
+  cursor: grab;
+  /* remove snapping */
+  /* scroll-snap-type: x mandatory; */
+  /* scroll-padding: 16px; */
 }
 
-.bf-label {
-  position: absolute;
-  top: 60px;     /* was 30px, doubled to match butterfly size */
-  left: 50%;
-  transform: translateX(-50%);
+.shop-swipe-container:active {
+  cursor: grabbing;
+}
+
+.shop-swipe-container::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+.shop-swipe-container::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.24); /* lighter thumb on dark bg */
+  border-radius: 4px;
+}
+
+.shop-swipe-item {
   background: #ffffffcc;
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: .9rem;
-  max-width: 260px;
-  white-space: nowrap;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;        /* slightly larger radius to match size */
+  aspect-ratio: 1 / 1;           /* perfect square */
+  width: 100%;
+  display: grid;
+  place-items: center;
+  color: #fff;                   /* readable on dark container */
+  user-select: none;
+  /* remove item snapping */
+  /* scroll-snap-align: center; */
+  position: relative;
   overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 6px 16px var(--ring);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .2s ease;
+}
+
+/* Hover: grow 1.1x + white border */
+.shop-swipe-item:hover {
+  transform: scale(1.1);
+  border-color: #fff;
+}
+
+/* Selected (clicked): keep 1.1x, white border + white glow */
+.shop-swipe-item.selected {
+  border: 2px solid #fff !important;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 8px 18px rgba(255,255,255,0.35);
+}
+
+/* Image fills square, centered */
+.shop-swipe-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   pointer-events: none;
 }
 
+/* Label styling inside squares */
+.shop-swipe-label {
+  font-weight: 800;
+  font-size: 20px;            /* was 18px */
+  user-select: none;
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.35);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 14px;
+}
 
 .bf:hover .bf-label,
 .bf-label.force-show {
   opacity: 1;
+}
+
+/* Hover freeze style for flying butterflies */
+.flying-butterfly.hovered img {
+  filter: drop-shadow(0 0 0px rgba(255,255,255,0)) drop-shadow(0 0 14px rgba(255,255,255,0.95));
+}
+
+.flying-butterfly .butterfly-hover-info {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 6px);
+  background: #ffffffcc;
+  color: var(--ink);
+  padding: 6px 8px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px var(--ring);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* Hover card styles */
+.bf-hover-card {
+  position: fixed; /* set in inline style for coords */
+  background: #ffffffee;
+  color: var(--ink);
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px var(--ring);
+  backdrop-filter: blur(6px);
+  max-width: 360px;
+  pointer-events: none; /* don't block interactions */
+}
+
+.bf-hover-name {
+  font-weight: 800;
+  font-size: clamp(1rem, 2.6vw, 2.4rem);
+  line-height: 1.15;
+  margin: 0 0 6px;
+}
+
+.bf-hover-message {
+  font-weight: 600;
+  font-size: clamp(0.95rem, 2.2vw, 2rem);
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* Panel root: hidden by default, fades in when open */
+.panel-root {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+  pointer-events: none; /* no interactions when closed */
+}
+.panel-root.open { pointer-events: auto; }
+
+/* Backdrop fades */
+.panel-backdrop {
+  position: absolute; inset: 0; background: rgba(17,24,39,.0); border: none;
+  transition: background 220ms ease;
+}
+.panel-root.open .panel-backdrop { background: rgba(17,24,39,.28); }
+
+/* Sheet pops + grows */
+.panel-sheet {
+  width: min(680px, 92vw);
+  max-height: 82vh;
+  overflow: hidden;            /* hide while animating height */
+  position: relative;
+  transform: translateY(8px) scale(0.98);
+  opacity: 0;
+  transition: transform 240ms ease, opacity 240ms ease;
+}
+
+/* Inner collapsible content with max-height transition */
+.panel-content {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 320ms ease, opacity 240ms ease;
+}
+
+/* Open state: visible + expanded */
+.panel-sheet.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.panel-content.open {
+  max-height: 1200px; /* large enough to fit content; adjust if needed */
+  opacity: 1;
+}
+
+/* Hatch overlay covers the entire screen */
+.hatch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;              /* above everything */
+  display: grid;
+  place-items: center;
+  background: transparent;
+  pointer-events: none;       /* allow clicks through when hidden */
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+.hatch-overlay.open {
+  pointer-events: auto;       /* block interactions while playing */
+  opacity: 1;
+}
+
+/* Very thick white drop shadow around the gif */
+.hatch-img {
+  width: min(100vw, 100vh);
+  height: auto;
+  max-height: 100vh;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 40px rgba(255,255,255,0.95))
+    drop-shadow(0 0 80px rgba(255,255,255,0.9))
+    drop-shadow(0 0 140px rgba(255,255,255,0.85))
+    drop-shadow(0 0 220px rgba(255,255,255,0.8));
 }
