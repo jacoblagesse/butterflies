@@ -55,6 +55,7 @@ export function useButterflyPhysics(butterflies, containerRef) {
         bobbingSpeed,
         width,
         height,
+        color: b.color || null,
         raw: b,
       };
     });
