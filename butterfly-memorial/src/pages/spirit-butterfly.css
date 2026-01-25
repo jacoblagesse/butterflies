@@ -69,7 +69,16 @@ header{display:flex; align-items:center; justify-content:space-between; gap:20px
 nav{display:flex; gap:16px; align-items:center}
 nav a{color:var(--muted); text-decoration:none; font-weight:600; font-size:var(--fs-nav); line-height:1}
 nav a:hover{color:var(--ink)}
-.signin{padding:10px 12px; border-radius:10px; background:#ffffffaa; box-shadow:0 8px 24px var(--ring); backdrop-filter:blur(6px)}
+.signin{padding:10px 12px; border-radius:10px; background:#ffffffaa; box-shadow:0 8px 24px var(--ring); backdrop-filter:blur(6px); border:none; cursor:pointer; font-weight:600; font-size:var(--fs-nav); color:var(--ink); transition:all 0.2s ease}
+.signin:hover{background:#fff; transform:translateY(-1px)}
+
+/* User menu */
+.user-menu{display:flex; align-items:center; gap:12px}
+.user-email{font-size:var(--fs-small); color:var(--muted); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:8px 12px; background:#ffffffaa; border-radius:8px; backdrop-filter:blur(6px)}
+
+/* Minimal header variant */
+.user-menu-minimal{display:flex; align-items:center; gap:8px}
+.user-email-minimal{font-size:13px; color:var(--muted); max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:6px 10px; background:#ffffffaa; border-radius:6px; backdrop-filter:blur(6px); font-weight:500}
 
 /* Hero */
 .hero{position:relative; display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; flex:1}

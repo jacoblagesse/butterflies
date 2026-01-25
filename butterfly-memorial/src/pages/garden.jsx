@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
+import Header from "../components/Header";
+import AuthPopup from "../components/AuthPopup";
 import GardenControls from "../components/GardenControls";
 import FlyingButterfly from "../components/FlyingButterfly";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
@@ -31,6 +33,7 @@ export default function Garden() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [butterflies, setButterflies] = useState([]);
+  const [isAuthOpen, setAuthOpen] = useState(false);
 
   const butterflyStates = useButterflyPhysics(butterflies, stageRef);
 
@@ -140,22 +143,8 @@ export default function Garden() {
       }}
     >
       <div className="wrap full-wrap" style={{ padding: 0 }}>
-        <div
-          style={{
-            position: "absolute",
-            top: 12,
-            left: 12,
-            right: 12,
-            zIndex: 20,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Link to="/" className="brand">
-            <img src={LogoUrl} alt="Butterfly Memorial logo" className="logo" />
-          </Link>
-        </div>
+        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+        <Header onSignInClick={() => setAuthOpen(true)} variant="minimal" />
 
         <main className="garden-stage">
           <div ref={stageRef} className="garden">

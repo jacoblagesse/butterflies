@@ -5,6 +5,7 @@ import GardenCreation from './pages/create'
 import Garden from './pages/garden';
 import About from './pages/About';
 import Pricing from './pages/Pricing';
+import Profile from './pages/Profile';
 
 
 function App() {
@@ -14,8 +15,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<GardenCreation />} />
         <Route path="/garden/:gardenId" element={<Garden />} />
-  <Route path="/about" element={<About />} />
-  <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   )

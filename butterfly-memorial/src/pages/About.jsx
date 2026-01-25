@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../pages/spirit-butterfly.css';
 import FlowersBackground from '../assets/backgrounds/background__homepage.png';
+import AuthPopup from '../components/AuthPopup';
+import { useAuth } from '../contexts/AuthContext';
 
-const About = () => (
+const About = () => {
+  const [isAuthOpen, setAuthOpen] = useState(false);
+  const { isAuthenticated, user, signOut } = useAuth();
+
+  return (
   <div className="page" style={{
     backgroundImage: `url(${FlowersBackground})`,
     backgroundSize: 'cover',
@@ -12,6 +18,7 @@ const About = () => (
     minHeight: '100vh',
   }}>
     <div className="wrap">
+      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <header>
         <div className="brand">
           <Link to="/" className="brand">
@@ -22,7 +29,11 @@ const About = () => (
         <nav>
           <Link to="/pricing">Pricing</Link>
           <Link to="/about">About</Link>
-          <Link className="signin" to="/signin">Sign in</Link>
+          {isAuthenticated ? (
+            <button className="signin" onClick={signOut}>Sign out</button>
+          ) : (
+            <button className="signin" onClick={() => setAuthOpen(true)}>Sign in</button>
+          )}
         </nav>
       </header>
       <section className="hero">
@@ -42,6 +53,7 @@ const About = () => (
       </footer>
     </div>
   </div>
-);
+  );
+};
 
 export default About;

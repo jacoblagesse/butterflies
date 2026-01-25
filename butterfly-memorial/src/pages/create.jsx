@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import AuthPopup from "../components/AuthPopup";
+import { useAuth } from "../contexts/AuthContext";
 import "./spirit-butterfly.css";
 
 import { db } from "../firebase";
@@ -21,8 +24,10 @@ const BACKGROUNDS = [
 
 export default function Creation() {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState("forward");
+  const [isAuthOpen, setAuthOpen] = useState(false);
 
   const [theme, setTheme] = useState({ key: "flowers", path: BACKGROUNDS[0].path });
   const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "", obitUrl: "" });
@@ -69,10 +74,14 @@ export default function Creation() {
 
   // Firebase methods
   const createGarden = async () => {
+    if (!user) {
+      throw new Error("User must be logged in to create a garden");
+    }
     const honoreeRef = doc(db, "honoree", currentHonoree);
+    const userRef = doc(db, "users", user.uid);
     const docRef = await addDoc(collection(db, "gardens"), {
       name: "Test Garden",
-      user: "/users/XQqCDa1Xcim1d4D6kp1A",
+      user: userRef,
       style: theme.key,
       honoree: honoreeRef,
       created: new Date(),
@@ -82,6 +91,10 @@ export default function Creation() {
   };
 
   const createGardenHandler = async () => {
+    if (!isAuthenticated) {
+      setAuthOpen(true);
+      return;
+    }
     const gardenId = await createGarden();
     console.log(gardenId);
 
@@ -130,13 +143,8 @@ export default function Creation() {
           flexDirection: "column",
         }}
       >
-        <header>
-          <Link className="brand" to="/">
-            <img src={LogoUrl} alt="Butterfly Memorial logo" className="logo" />
-          </Link>
-          <nav>
-          </nav>
-        </header>
+        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+        <Header onSignInClick={() => setAuthOpen(true)} />
 
         <section
           className="hero"

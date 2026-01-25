@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../pages/spirit-butterfly.css';
+import AuthPopup from '../components/AuthPopup';
+import { useAuth } from '../contexts/AuthContext';
 
 const pricingTiers = [
   { q: '1', p: '$0.99' },
@@ -8,9 +10,14 @@ const pricingTiers = [
   { q: '20', p: '$19.80' },
 ];
 
-const Pricing = () => (
+const Pricing = () => {
+  const [isAuthOpen, setAuthOpen] = useState(false);
+  const { isAuthenticated, signOut } = useAuth();
+
+  return (
   <div className="page" style={{ minHeight: '100vh' }}>
     <div className="wrap">
+      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <header>
         <div className="brand">
           <Link to="/" className="brand">
@@ -21,7 +28,11 @@ const Pricing = () => (
         <nav>
           <Link to="/pricing">Pricing</Link>
           <Link to="/about">About</Link>
-          <Link className="signin" to="/signin">Sign in</Link>
+          {isAuthenticated ? (
+            <button className="signin" onClick={signOut}>Sign out</button>
+          ) : (
+            <button className="signin" onClick={() => setAuthOpen(true)}>Sign in</button>
+          )}
         </nav>
       </header>
       <section className="buy" style={{ marginTop: '2.5rem' }}>
@@ -48,6 +59,7 @@ const Pricing = () => (
       </footer>
     </div>
   </div>
-);
+  );
+};
 
 export default Pricing;
