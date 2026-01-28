@@ -36,7 +36,6 @@ export default function Profile() {
             const gardenData = gardenDoc.data();
             let honoreeName = 'Unknown';
 
-            // Fetch honoree name if reference exists
             if (gardenData.honoree) {
               try {
                 const honoreeSnap = await getDocs(
@@ -60,7 +59,6 @@ export default function Profile() {
           })
         );
 
-        // Sort by creation date, newest first
         gardensList.sort((a, b) => b.created - a.created);
         setGardens(gardensList);
       } catch (err) {
@@ -76,19 +74,20 @@ export default function Profile() {
     }
   }, [user, authLoading]);
 
-  // Show loading while auth is being determined
+  const bgStyle = {
+    backgroundImage: `url(${FlowersBackground})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+
   if (authLoading) {
     return (
-      <div className="page" style={{
-        backgroundImage: `url(${FlowersBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
+      <div className="page" style={bgStyle}>
         <div className="wrap">
           <Header onSignInClick={() => setAuthOpen(true)} />
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
             <div className="hero-card" style={{ textAlign: 'center', padding: '40px' }}>
-              <p>Loading...</p>
+              <p style={{ color: 'var(--muted)' }}>Loading...</p>
             </div>
           </div>
         </div>
@@ -96,21 +95,18 @@ export default function Profile() {
     );
   }
 
-  // Prompt sign in if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="page" style={{
-        backgroundImage: `url(${FlowersBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
+      <div className="page" style={bgStyle}>
         <div className="wrap">
           <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
           <Header onSignInClick={() => setAuthOpen(true)} />
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-            <div className="hero-card" style={{ textAlign: 'center', padding: '40px', maxWidth: '500px' }}>
-              <h2 style={{ marginBottom: '16px' }}>Sign in to view your gardens</h2>
-              <p className="sub" style={{ marginBottom: '24px' }}>
+            <div className="hero-card" style={{ textAlign: 'center', padding: '44px 36px', maxWidth: '460px' }}>
+              <h2 style={{ marginBottom: '12px', fontSize: 'clamp(1.4rem, 3.5vw, 1.8rem)' }}>
+                Sign in to view your gardens
+              </h2>
+              <p className="sub" style={{ marginBottom: '24px', fontSize: '0.95rem' }}>
                 Create an account or sign in to see all the gardens you've created.
               </p>
               <button className="btn primary" onClick={() => setAuthOpen(true)}>
@@ -124,44 +120,42 @@ export default function Profile() {
   }
 
   return (
-    <div className="page" style={{
-      backgroundImage: `url(${FlowersBackground})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    }}>
+    <div className="page" style={bgStyle}>
       <div className="wrap">
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
         <Header onSignInClick={() => setAuthOpen(true)} />
 
         <section style={{ flex: 1, paddingTop: '24px' }}>
-          <div className="hero-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div className="hero-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ margin: 0 }}>My Gardens</h2>
-                <p className="sub" style={{ margin: '8px 0 0' }}>{user?.email}</p>
+                <h2 style={{ margin: 0, fontSize: 'clamp(1.3rem, 3.5vw, 1.7rem)' }}>My Gardens</h2>
+                <p className="sub" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>{user?.email}</p>
               </div>
-              <Link to="/create" className="btn primary">
+              <Link to="/create" className="btn primary" style={{ fontSize: '0.9rem', padding: '10px 20px' }}>
                 Create Garden
               </Link>
             </div>
 
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
+              <div style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                 Loading your gardens...
               </div>
             ) : error ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#dc2626' }}>
+              <div style={{ textAlign: 'center', padding: '36px', color: '#b44848' }}>
                 {error}
               </div>
             ) : gardens.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <p className="sub" style={{ marginBottom: '16px' }}>You haven't created any gardens yet.</p>
+              <div style={{ textAlign: 'center', padding: '36px' }}>
+                <p className="sub" style={{ marginBottom: '16px', fontSize: '0.95rem' }}>
+                  You haven't created any gardens yet.
+                </p>
                 <Link to="/create" className="btn ghost">
                   Create Your First Garden
                 </Link>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'grid', gap: '10px' }}>
                 {gardens.map((garden) => (
                   <Link
                     key={garden.id}
@@ -169,44 +163,44 @@ export default function Profile() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '16px',
-                      padding: '16px',
-                      background: '#fff',
-                      borderRadius: '12px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      gap: '14px',
+                      padding: '14px 16px',
+                      background: 'var(--card-solid)',
+                      borderRadius: 'var(--r-sm)',
+                      border: '1px solid var(--border)',
                       textDecoration: 'none',
                       color: 'inherit',
                       transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px var(--ring)';
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
                     <div style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '10px',
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '12px',
                       background: getThemeGradient(garden.style),
                       display: 'grid',
                       placeItems: 'center',
                       flexShrink: 0,
                     }}>
-                      <span style={{ fontSize: '24px' }}>🦋</span>
+                      <span style={{ fontSize: '20px' }}>🦋</span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '16px' }}>
+                      <div style={{ fontWeight: 600, fontSize: '15px' }}>
                         {garden.honoreeName}
                       </div>
-                      <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '2px' }}>
-                        {garden.style ? capitalizeFirst(garden.style) : 'Garden'} · Created {formatDate(garden.created)}
+                      <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>
+                        {garden.style ? capitalizeFirst(garden.style) : 'Garden'} · {formatDate(garden.created)}
                       </div>
                     </div>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--muted)', flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--muted)', flexShrink: 0, opacity: 0.5 }}>
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                   </Link>
@@ -216,8 +210,8 @@ export default function Profile() {
           </div>
         </section>
 
-        <footer style={{ marginTop: '2rem', textAlign: 'center', color: '#394150' }}>
-          © {new Date().getFullYear()} Butterfly Memorial
+        <footer className="page-footer">
+          &copy; {new Date().getFullYear()} Butterfly Memorial
         </footer>
       </div>
     </div>
@@ -227,13 +221,13 @@ export default function Profile() {
 function getThemeGradient(style) {
   switch (style) {
     case 'mountain':
-      return 'linear-gradient(135deg, #a8d5ba, #6b8e7a)';
+      return 'linear-gradient(135deg, #b8d5c4, #7a9e8a)';
     case 'tropical':
-      return 'linear-gradient(135deg, #ffd93d, #6bcb77)';
+      return 'linear-gradient(135deg, #f0d98c, #8ecb9a)';
     case 'lake':
-      return 'linear-gradient(135deg, #74b9ff, #0984e3)';
+      return 'linear-gradient(135deg, #95c4e8, #5a9ac7)';
     default:
-      return 'linear-gradient(135deg, #ffe7f3, #e6f5ff)';
+      return 'linear-gradient(135deg, rgba(212,169,199,0.3), rgba(155,142,196,0.2))';
   }
 }
 

@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
+import FlyingButterfly from "../components/FlyingButterfly";
+import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import "./spirit-butterfly.css";
 
 import LogoUrl from "../assets/logos/logo.svg";
@@ -9,6 +11,15 @@ import DaisiesBackground from "../assets/backgrounds/daisies.png";
 
 import { db } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
+
+const AMBIENT_BUTTERFLIES = [
+  { id: "amb-1", gifter: "", message: "", color: "blue" },
+  { id: "amb-2", gifter: "", message: "", color: "pink" },
+  { id: "amb-3", gifter: "", message: "", color: "purple" },
+  { id: "amb-4", gifter: "", message: "", color: "orange" },
+  { id: "amb-5", gifter: "", message: "", color: "green" },
+  { id: "amb-6", gifter: "", message: "", color: "yellow" },
+];
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -18,6 +29,9 @@ export default function Landing() {
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef(null);
+  const stageRef = useRef(null);
+
+  const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
 
   // Client-side search against honorees
   useEffect(() => {
@@ -86,9 +100,36 @@ export default function Landing() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        position: "relative",
       }}
     >
-      <div className="wrap">
+      {/* Ambient butterfly layer — behind all content */}
+      <div
+        ref={stageRef}
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
+          overflow: "hidden",
+        }}
+      >
+        {butterflyStates.map((s) => (
+          <FlyingButterfly
+            key={s.id}
+            x={s.x}
+            y={s.y}
+            size={s.size}
+            direction={s.direction}
+            imageIndex={s.imageIndex}
+            label=""
+            isLanded={s.isLanded}
+            color={s.color || null}
+          />
+        ))}
+      </div>
+
+      <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
         <Header onSignInClick={() => setAuthOpen(true)} />
 
@@ -108,15 +149,22 @@ export default function Landing() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "36px 28px",
-              maxWidth: "640px",
+              padding: "44px 36px",
+              maxWidth: "580px",
               width: "100%",
             }}
           >
-            <h2 style={{ marginBottom: "0.75rem", fontSize: "2.4rem", textAlign: "center" }}>
+            <h2
+              style={{
+                marginBottom: "0.5rem",
+                fontSize: "clamp(1.6rem, 4.5vw, 2.2rem)",
+                textAlign: "center",
+                lineHeight: 1.2,
+              }}
+            >
               Butterfly Memorial Garden
             </h2>
-            <p className="sub" style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+            <p className="sub" style={{ textAlign: "center", marginBottom: "1.75rem", maxWidth: "440px" }}>
               Search for a loved one's garden or create a new one.
             </p>
 
@@ -124,12 +172,12 @@ export default function Landing() {
             <div style={{ width: "100%", position: "relative" }}>
               <div style={{ position: "relative" }}>
                 <svg
-                  width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2"
+                  width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5"
                   style={{
                     position: "absolute", left: "16px", top: "50%",
                     transform: "translateY(-50%)", color: "var(--muted)",
-                    pointerEvents: "none",
+                    pointerEvents: "none", opacity: 0.6,
                   }}
                 >
                   <circle cx="11" cy="11" r="8" />
@@ -143,11 +191,10 @@ export default function Landing() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "16px 16px 16px 48px",
-                    fontSize: "17px",
-                    borderRadius: "16px",
-                    border: "1px solid #e5e7eb",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                    padding: "14px 16px 14px 46px",
+                    fontSize: "15px",
+                    borderRadius: "var(--r-sm)",
+                    boxShadow: "0 2px 10px var(--ring)",
                     boxSizing: "border-box",
                   }}
                 />
@@ -157,19 +204,20 @@ export default function Landing() {
               {searchQuery.trim() && (
                 <div style={{
                   position: "absolute",
-                  top: "calc(100% + 8px)",
+                  top: "calc(100% + 6px)",
                   left: 0,
                   right: 0,
-                  background: "#fff",
-                  borderRadius: "12px",
-                  boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+                  background: "var(--card-solid)",
+                  borderRadius: "var(--r-sm)",
+                  boxShadow: "0 8px 32px rgba(44,40,54,0.12)",
                   overflow: "hidden",
                   zIndex: 50,
-                  maxHeight: "280px",
+                  maxHeight: "260px",
                   overflowY: "auto",
+                  border: "1px solid var(--border)",
                 }}>
                   {searching ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "15px" }}>
+                    <div style={{ padding: "18px", textAlign: "center", color: "var(--muted)", fontSize: "14px" }}>
                       Searching...
                     </div>
                   ) : results.length > 0 ? (
@@ -181,28 +229,28 @@ export default function Landing() {
                           display: "flex",
                           alignItems: "center",
                           gap: "12px",
-                          padding: "14px 16px",
+                          padding: "12px 16px",
                           textDecoration: "none",
                           color: "inherit",
-                          borderBottom: "1px solid #f3f4f6",
+                          borderBottom: "1px solid var(--border)",
                           transition: "background 0.15s ease",
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.background = "#f9fafb"}
+                        onMouseOver={(e) => e.currentTarget.style.background = "rgba(155,142,196,0.06)"}
                         onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
                       >
                         <div style={{
-                          width: "40px", height: "40px", borderRadius: "10px",
+                          width: "38px", height: "38px", borderRadius: "10px",
                           background: getThemeGradient(r.gardenStyle),
                           display: "grid", placeItems: "center", flexShrink: 0,
                         }}>
-                          <span style={{ fontSize: "20px" }}>🦋</span>
+                          <span style={{ fontSize: "18px" }}>🦋</span>
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: "15px" }}>
+                          <div style={{ fontWeight: 600, fontSize: "14px" }}>
                             {r.firstName} {r.lastName}
                           </div>
                           {r.dates && (
-                            <div style={{ fontSize: "13px", color: "var(--muted)", marginTop: "2px" }}>
+                            <div style={{ fontSize: "13px", color: "var(--muted)", marginTop: "1px" }}>
                               {r.dates}
                             </div>
                           )}
@@ -210,7 +258,7 @@ export default function Landing() {
                       </Link>
                     ))
                   ) : hasSearched ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)", fontSize: "15px" }}>
+                    <div style={{ padding: "18px", textAlign: "center", color: "var(--muted)", fontSize: "14px" }}>
                       No gardens found for "{searchQuery}"
                     </div>
                   ) : null}
@@ -223,12 +271,11 @@ export default function Landing() {
               className="btn primary"
               to="/create"
               style={{
-                marginTop: "1.5rem",
+                marginTop: "1.25rem",
                 textAlign: "center",
-                minWidth: "260px",
-                fontSize: "1.15rem",
-                padding: "0.9rem 2.5rem",
-                borderRadius: "2rem",
+                minWidth: "220px",
+                fontSize: "0.95rem",
+                padding: "13px 32px",
               }}
             >
               Create a Garden
@@ -237,33 +284,30 @@ export default function Landing() {
         </section>
 
         <section
-          className="about"
           style={{
             display: "flex",
             justifyContent: "center",
-            padding: "24px",
+            padding: "20px 0",
           }}
         >
           <div
+            className="hero-card"
             style={{
-              width: "min(800px, 100%)",
-              background: "#ffffff",
-              border: "1px solid #e0e0e0",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-              borderRadius: "16px",
-              padding: "24px",
-              lineHeight: 1.6,
-              color: "#2f3a4c",
+              width: "min(680px, 100%)",
+              padding: "28px 32px",
+              lineHeight: 1.7,
+              color: "var(--ink)",
+              textAlign: "center",
             }}
           >
-            <p style={{ marginTop: 0 }}>
+            <p style={{ margin: "0 0 12px", color: "var(--ink)", fontSize: "0.95rem" }}>
               Welcome to ButterflyTribute.com.
             </p>
-            <p>
+            <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: "0.95rem" }}>
               Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
               Together, we'll honor their spirit with heartfelt tributes in a tranquil space.
             </p>
-            <p style={{ marginBottom: 0 }}>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.95rem" }}>
               As a gift to those grieving, we offer a free garden memorial and a butterfly. Once the garden is created,
               you can share it with friends and family, who can release their own butterflies as a show of love and support.
               This beautiful garden can be revisited anytime as a place where memories can continue to bloom.
@@ -271,6 +315,9 @@ export default function Landing() {
           </div>
         </section>
 
+        <footer className="page-footer">
+          &copy; {new Date().getFullYear()} Butterfly Memorial
+        </footer>
       </div>
     </div>
   );
@@ -278,9 +325,9 @@ export default function Landing() {
 
 function getThemeGradient(style) {
   switch (style) {
-    case "mountain": return "linear-gradient(135deg, #a8d5ba, #6b8e7a)";
-    case "tropical": return "linear-gradient(135deg, #ffd93d, #6bcb77)";
-    case "lake": return "linear-gradient(135deg, #74b9ff, #0984e3)";
-    default: return "linear-gradient(135deg, #ffe7f3, #e6f5ff)";
+    case "mountain": return "linear-gradient(135deg, #b8d5c4, #7a9e8a)";
+    case "tropical": return "linear-gradient(135deg, #f0d98c, #8ecb9a)";
+    case "lake": return "linear-gradient(135deg, #95c4e8, #5a9ac7)";
+    default: return "linear-gradient(135deg, rgba(212,169,199,0.3), rgba(155,142,196,0.2))";
   }
 }
