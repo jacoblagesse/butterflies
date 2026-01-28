@@ -12,47 +12,62 @@ export function useButterflyPhysics(butterflies, containerRef) {
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
-    console.log("Container dimensions:", { width, height });
-
     butterfliesStateRef.current = butterflies.map((b, i) => {
       const startFromLeft = Math.random() > 0.5;
-      let x, y, vx, vy;
+      let x, y, heading;
 
       if (startFromLeft) {
-        x = -(100 + Math.random() * 200); // -100 to -300 pixels off-screen
+        x = -(100 + Math.random() * 200);
         y = Math.random() * height;
-        vx = 1 + Math.random() * 1;
-        vy = (Math.random() - 0.5) * 0.5;
+        heading = (Math.random() - 0.5) * 0.6; // roughly rightward
       } else {
-        x = width + (100 + Math.random() * 200); // +100 to +300 pixels off-screen
+        x = width + (100 + Math.random() * 200);
         y = Math.random() * height;
-        vx = -(1 + Math.random() * 1);
-        vy = (Math.random() - 0.5) * 0.5;
+        heading = Math.PI + (Math.random() - 0.5) * 0.6; // roughly leftward
       }
 
+      const speed = 0.8 + Math.random() * 0.8; // base speed
       const imageIndex = Math.floor(Math.random() * 3);
-      const bobbingSpeed = 0.03 + Math.random() * 0.02; // Variation in bobbing speed
 
       return {
         id: b.id || i,
         label: `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
         x,
         y,
-        vx,
-        vy,
+        // Heading-based movement for smooth curves
+        heading,
+        speed,
+        baseSpeed: speed,
+        turnRate: 0, // current angular velocity
+        // Derived for rendering
+        vx: Math.cos(heading) * speed,
+        vy: Math.sin(heading) * speed,
         size: calculateSize(y, height),
         imageIndex,
-        direction: vx > 0 ? -1 : 1,
+        direction: Math.cos(heading) > 0 ? -1 : 1,
+        // Landing state
         isLanded: false,
         isLanding: false,
         isTakingOff: false,
         landUntil: 0,
         targetLandY: 0,
         takeoffStartY: 0,
+        takeoffProgress: 0,
+        landingProgress: 0,
+        // Respawn
         isWaiting: false,
         nextSpawnTime: 0,
-        bobbingOffset: Math.random() * Math.PI * 2, // Random start phase
-        bobbingSpeed,
+        // Organic motion
+        bobbingPhase: Math.random() * Math.PI * 2,
+        bobbingPhase2: Math.random() * Math.PI * 2,
+        bobbingSpeed: 0.04 + Math.random() * 0.02,
+        // Wandering — slow random steering
+        wanderAngle: 0,
+        wanderSpeed: 0.3 + Math.random() * 0.4, // how fast wander target drifts
+        // Flutter bursts
+        nextFlutterTime: Date.now() + 2000 + Math.random() * 8000,
+        flutterUntil: 0,
+        // Container
         width,
         height,
         color: b.color || null,
@@ -74,13 +89,12 @@ export function useButterflyPhysics(butterflies, containerRef) {
       lastTime = now;
 
       const list = butterfliesStateRef.current;
-
       for (let i = 0; i < list.length; i++) {
         updateButterflyPosition(list[i], dt);
       }
 
-      // Throttle React updates to ~10Hz
-      if (now - lastRenderTick > 100) {
+      // Render at ~30Hz for smoother motion
+      if (now - lastRenderTick > 33) {
         lastRenderTick = now;
         setTick((t) => t + 1);
       }
@@ -97,124 +111,196 @@ export function useButterflyPhysics(butterflies, containerRef) {
 
 function updateButterflyPosition(b, dt) {
   const now = Date.now();
+  const f = dt / 16; // frame factor (1.0 at 60fps)
 
-  // Handle taking off animation
+  // --- TAKING OFF ---
   if (b.isTakingOff) {
-    b.x += b.vx * (dt / 16);
-    b.y -= 2 * (dt / 16); // Move up
+    b.takeoffProgress += 0.02 * f;
+    const ease = easeOutCubic(Math.min(1, b.takeoffProgress));
 
-    // Check if finished taking off (moved up 30-50 pixels)
-    if (b.takeoffStartY - b.y > 80) {
+    b.x += b.vx * f * (0.3 + ease * 0.7);
+    b.y -= (1.5 + ease * 1.5) * f;
+
+    if (b.takeoffProgress >= 1) {
       b.isTakingOff = false;
-      // Resume normal flight
+      b.takeoffProgress = 0;
     }
     return;
   }
 
-  // Check if butterfly should take off
+  // --- CHECK TAKE OFF ---
   if (b.isLanded && now >= b.landUntil) {
     b.isLanded = false;
     b.isTakingOff = true;
     b.takeoffStartY = b.y;
+    b.takeoffProgress = 0;
+    // Pick a new random heading away from ground
+    b.heading = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+    b.speed = b.baseSpeed;
+    b.vx = Math.cos(b.heading) * b.speed;
+    b.vy = Math.sin(b.heading) * b.speed;
+    b.direction = b.vx > 0 ? -1 : 1;
     return;
   }
 
-  // If landed, don't move
+  // --- LANDED ---
   if (b.isLanded) {
     return;
   }
 
-  // Handle landing animation
+  // --- LANDING ---
   if (b.isLanding) {
-    b.x += b.vx * (dt / 16);
-    b.y += 2 * (dt / 16); // Dip down
+    b.landingProgress += 0.015 * f;
+    const ease = easeInOutCubic(Math.min(1, b.landingProgress));
 
-    // Check if reached landing position
-    if (b.y >= b.targetLandY) {
+    // Slow horizontal, smooth vertical descent
+    b.x += b.vx * f * (1 - ease * 0.9);
+    b.y += (1.0 + ease * 1.5) * f;
+
+    if (b.y >= b.targetLandY || b.landingProgress >= 1) {
       b.y = b.targetLandY;
       b.isLanding = false;
       b.isLanded = true;
-      const restDuration = 5000 + Math.random() * 25000; // 5-30 seconds
-      b.landUntil = now + restDuration;
+      b.landingProgress = 0;
+      b.landUntil = now + 5000 + Math.random() * 25000;
     }
     return;
   }
 
-  // If waiting to respawn, check if it's time
+  // --- WAITING TO RESPAWN ---
   if (b.isWaiting) {
     if (now >= b.nextSpawnTime) {
-      // Time to respawn - move to edge and start flying
       const startFromLeft = Math.random() > 0.5;
-
       if (startFromLeft) {
-        b.x = -(100 + Math.random() * 200); // -100 to -300 pixels off-screen
+        b.x = -(100 + Math.random() * 200);
         b.y = Math.random() * b.height;
-        b.vx = 1 + Math.random() * 1;
-        b.vy = (Math.random() - 0.5) * 0.5;
+        b.heading = (Math.random() - 0.5) * 0.6;
       } else {
-        b.x = b.width + (100 + Math.random() * 200); // +100 to +300 pixels off-screen
+        b.x = b.width + (100 + Math.random() * 200);
         b.y = Math.random() * b.height;
-        b.vx = -(1 + Math.random() * 1);
-        b.vy = (Math.random() - 0.5) * 0.5;
+        b.heading = Math.PI + (Math.random() - 0.5) * 0.6;
       }
-
+      b.speed = b.baseSpeed;
+      b.vx = Math.cos(b.heading) * b.speed;
+      b.vy = Math.sin(b.heading) * b.speed;
       b.direction = b.vx > 0 ? -1 : 1;
       b.isWaiting = false;
     }
-    return; // Don't move while waiting
-  }
-
-  // Update bobbing offset
-  b.bobbingOffset += b.bobbingSpeed;
-
-  // Simple linear motion with bobbing
-  b.x += b.vx * (dt / 16);
-  b.y += b.vy * (dt / 16) + Math.sin(b.bobbingOffset) * 0.5; // Add gentle bobbing
-
-  // Keep butterflies from going below the bottom with a buffer
-  const bottomBuffer = 400;
-  const maxY = b.height - bottomBuffer;
-  if (b.y > maxY) {
-    b.y = maxY;
-    // If moving down, stop or reverse slightly
-    if (b.vy > 0) {
-      b.vy = -Math.abs(b.vy) * 0.5;
-    }
-  }
-
-  // Update size based on y position for depth effect
-  b.size = calculateSize(b.y, b.height);
-
-  // Check if butterfly is in bottom 40% and should land (small random chance)
-  const bottomThreshold = b.height * 0.5; // Bottom 40% starts at 60% down
-  if (!b.isLanded && !b.isLanding && b.y > bottomThreshold && Math.random() < 0.003) {
-    b.isLanding = true;
-    b.targetLandY = b.y + 80; // Dip down 40 pixels
     return;
   }
 
-  // Check if butterfly has left the screen
-  const margin = 150;
-  const isOffScreen = b.x < -margin || b.x > b.width + margin || b.y < -margin || b.y > b.height + margin;
+  // --- NORMAL FLIGHT ---
 
+  // Wandering: gently steer using a drifting target angle
+  b.wanderAngle += (Math.random() - 0.5) * b.wanderSpeed * f;
+  b.wanderAngle *= 0.98; // dampen so it doesn't spiral
+
+  // Apply wander as gradual turn
+  b.turnRate += b.wanderAngle * 0.002 * f;
+  b.turnRate *= 0.92; // friction on turning
+  b.heading += b.turnRate * f;
+
+  // Soft boundary steering — gently turn away from edges
+  const edgeMargin = 120;
+  let steerX = 0;
+  let steerY = 0;
+
+  if (b.x < edgeMargin) steerX = (edgeMargin - b.x) / edgeMargin;
+  else if (b.x > b.width - edgeMargin) steerX = -(b.x - (b.width - edgeMargin)) / edgeMargin;
+
+  if (b.y < edgeMargin) steerY = (edgeMargin - b.y) / edgeMargin;
+  else if (b.y > b.height - 400) steerY = -(b.y - (b.height - 400)) / (edgeMargin);
+
+  // Convert edge avoidance to heading adjustment
+  const desiredAngle = Math.atan2(steerY, steerX);
+  const edgeStrength = Math.min(1, Math.sqrt(steerX * steerX + steerY * steerY));
+  if (edgeStrength > 0.05) {
+    let angleDiff = desiredAngle - b.heading;
+    // Normalize to [-PI, PI]
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+    b.heading += angleDiff * edgeStrength * 0.03 * f;
+  }
+
+  // Flutter bursts — brief speed increases
+  if (now >= b.nextFlutterTime && now > b.flutterUntil) {
+    b.flutterUntil = now + 300 + Math.random() * 600;
+    b.nextFlutterTime = now + 3000 + Math.random() * 10000;
+  }
+
+  const isFluttering = now < b.flutterUntil;
+  const speedMult = isFluttering ? 1.6 + Math.random() * 0.4 : 1.0;
+  b.speed = b.baseSpeed * speedMult;
+
+  // Compute velocity from heading
+  b.vx = Math.cos(b.heading) * b.speed;
+  b.vy = Math.sin(b.heading) * b.speed;
+
+  // Update position
+  b.x += b.vx * f;
+  b.y += b.vy * f;
+
+  // Multi-layered bobbing for organic vertical motion
+  b.bobbingPhase += b.bobbingSpeed * f;
+  b.bobbingPhase2 += b.bobbingSpeed * 0.6 * f;
+  const bob = Math.sin(b.bobbingPhase) * 1.8 + Math.sin(b.bobbingPhase2 * 1.7) * 1.0;
+  b.y += bob * f * 0.3;
+
+  // Update direction for sprite flipping
+  if (Math.abs(b.vx) > 0.2) {
+    b.direction = b.vx > 0 ? -1 : 1;
+  }
+
+  // Bottom boundary
+  const maxY = b.height - 400;
+  if (b.y > maxY) {
+    b.y = maxY;
+    if (b.vy > 0) b.vy = -Math.abs(b.vy) * 0.5;
+    b.heading = -Math.abs(b.heading); // steer upward
+  }
+
+  // Top boundary
+  if (b.y < 0) {
+    b.y = 0;
+    if (b.vy < 0) b.vy = Math.abs(b.vy) * 0.5;
+    b.heading = Math.abs(b.heading);
+  }
+
+  // Depth-based size
+  b.size = calculateSize(b.y, b.height);
+
+  // Random landing chance in lower half
+  const bottomThreshold = b.height * 0.5;
+  if (!b.isLanded && !b.isLanding && b.y > bottomThreshold && Math.random() < 0.002) {
+    b.isLanding = true;
+    b.landingProgress = 0;
+    b.targetLandY = b.y + 60 + Math.random() * 40;
+    return;
+  }
+
+  // Off-screen → respawn
+  const margin = 250;
+  const isOffScreen = b.x < -margin || b.x > b.width + margin || b.y < -margin || b.y > b.height + margin;
   if (isOffScreen && !b.isWaiting) {
-    // Start waiting period with delay up to 30 seconds
-    const spawnDelay = Math.random() * 30000; // 0-30 seconds in milliseconds
-    b.nextSpawnTime = now + spawnDelay;
+    b.nextSpawnTime = now + Math.random() * 20000;
     b.isWaiting = true;
     b.isLanded = false;
-
-    // Move butterfly far off-screen while waiting
     b.x = -10000;
     b.y = -10000;
   }
 }
 
 function calculateSize(y, height) {
-  // Butterflies at bottom (y close to height) are larger (closer)
-  // Butterflies at top (y close to 0) are smaller (farther)
   const normalizedY = Math.max(0, Math.min(1, y / height));
   const minSize = 0.2;
   const maxSize = 0.6;
   return minSize + normalizedY * (maxSize - minSize);
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
