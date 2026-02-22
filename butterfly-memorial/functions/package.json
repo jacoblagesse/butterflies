@@ -1,0 +1,15 @@
+{
+  "name": "butterfly-memorial-functions",
+  "description": "Cloud Functions for Butterfly Memorial Stripe payments",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^5.0.0",
+    "stripe": "^14.0.0"
+  },
+  "private": true
+}

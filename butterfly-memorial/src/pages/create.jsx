@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
+import VideoBackground from "../components/VideoBackground";
+import FlyingButterfly from "../components/FlyingButterfly";
+import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import { useAuth } from "../contexts/AuthContext";
 import "./spirit-butterfly.css";
 
@@ -10,16 +13,17 @@ import { collection, addDoc, getDoc, doc } from "firebase/firestore";
 
 import LogoUrl from "../assets/logos/logo.svg";
 
-import MountainBackgroundGif from "../assets/backgrounds/background_mountain__HD.gif";
-import TropicalBackgroundGif from "../assets/backgrounds/background_tropical__HD.gif";
-import LakeBackgroundGif from "../assets/backgrounds/background_lake__HD.gif";
-
+const AMBIENT_BUTTERFLIES = [
+  { id: "amb-1", gifter: "", message: "", color: "blue" },
+  { id: "amb-2", gifter: "", message: "", color: "pink" },
+  { id: "amb-3", gifter: "", message: "", color: "purple" },
+  { id: "amb-4", gifter: "", message: "", color: "orange" },
+];
 
 const BACKGROUNDS = [
-  // { key: "flowers", label: "Flowers", path: FlowersBackground },
-  { key: "mountain", label: "Mountain", path: MountainBackgroundGif },
-  { key: "tropical", label: "Tropical", path: TropicalBackgroundGif },
-  { key: "lake", label: "Lake", path: LakeBackgroundGif },
+  { key: "mountain", label: "Mountain" },
+  { key: "tropical", label: "Tropical" },
+  { key: "lake", label: "Lake" },
 ];
 
 export default function Creation() {
@@ -29,11 +33,13 @@ export default function Creation() {
   const [dir, setDir] = useState("forward");
   const [isAuthOpen, setAuthOpen] = useState(false);
 
-  const [theme, setTheme] = useState({ key: "flowers", path: BACKGROUNDS[0].path });
+  const [theme, setTheme] = useState({ key: "mountain" });
   const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "", obitUrl: "" });
   const [currentHonoree, setCurrentHonoree] = useState("");
 
   const prevRef = useRef(null);
+  const stageRef = useRef(null);
+  const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
   useEffect(() => {
     if (step !== 4) return;
 
@@ -122,18 +128,35 @@ export default function Creation() {
   };
 
   return (
-    <div
-      className="page full-page"
-      style={{
-        backgroundImage: `url(${theme.path})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        // Keep viewport fixed; no growth on step change
-        height: "100vh",
-        transition: 'background 300ms ease-in-out',
-      }}
-    >
+    <div className="page full-page" style={{ position: "relative", height: "100vh" }}>
+      <VideoBackground backgroundKey={theme.key} />
+
+      {/* Ambient butterfly layer */}
+      <div
+        ref={stageRef}
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 1,
+          overflow: "hidden",
+        }}
+      >
+        {butterflyStates.map((s) => (
+          <FlyingButterfly
+            key={s.id}
+            x={s.x}
+            y={s.y}
+            size={s.size}
+            direction={s.direction}
+            imageIndex={s.imageIndex}
+            label=""
+            isLanded={s.isLanded}
+            color={s.color || null}
+          />
+        ))}
+      </div>
+
       <div
         className="wrap full-wrap"
         style={{
@@ -141,6 +164,8 @@ export default function Creation() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
+          position: "relative",
+          zIndex: 2,
         }}
       >
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
@@ -181,7 +206,7 @@ export default function Creation() {
                       <button
                         key={t.key}
                         className={`theme-tile ${theme.key === t.key ? "active" : ""}`}
-                        onClick={() => setTheme({ key: t.key, path: t.path })}
+                        onClick={() => setTheme({ key: t.key })}
                       >
                         <div className={`theme-preview theme-${t.key}`} />
                         <div style={{ marginTop: 8, fontWeight: 700 }}>{t.label}</div>

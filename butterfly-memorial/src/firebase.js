@@ -12,19 +12,18 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail
 } from "firebase/auth";
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from "firebase/functions";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyANWdapj-hDJzO8F7tYv97DecLD6ytY4eE",
-  authDomain: "butterfly-memorial.firebaseapp.com",
-  projectId: "butterfly-memorial",
-  storageBucket: "butterfly-memorial.firebasestorage.app",
-  messagingSenderId: "235160475346",
-  appId: "1:235160475346:web:3f1dd3b2c206099e38bf0b",
-  measurementId: "G-K08Z9QFM2H"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -50,3 +49,13 @@ export const resetPassword = (email) =>
   sendPasswordResetEmail(auth, email);
 
 export { onAuthStateChanged };
+
+// Cloud Functions
+export const functions = getFunctions(app);
+export const createPaymentIntentFn = httpsCallable(functions, 'createPaymentIntent');
+export const confirmPaymentFn = httpsCallable(functions, 'confirmPayment');
+
+// Connect to emulator in development
+if (import.meta.env.DEV) {
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+}

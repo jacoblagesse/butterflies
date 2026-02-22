@@ -6,23 +6,13 @@ import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
 import GardenControls from "../components/GardenControls";
 import FlyingButterfly from "../components/FlyingButterfly";
+import VideoBackground from "../components/VideoBackground";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
-import FlowersBackground from "../assets/backgrounds/background__homepage.png";
-import MountainBackground from "../assets/backgrounds/background_mountain__HD.gif";
-import TropicalBackground from "../assets/backgrounds/background_tropical__HD.gif";
-import LakeBackground from "../assets/backgrounds/background_lake__HD.gif";
 
 import "./spirit-butterfly.css";
 
 import LogoUrl from "../assets/logos/logo.svg";
 import GardenSign from "../assets/backgrounds/garden_sign.png"; // add sign background
-
-const BACKGROUNDS = {
-  flowers: FlowersBackground,
-  mountain: MountainBackground,
-  tropical: TropicalBackground,
-  lake: LakeBackground,
-};
 
 export default function Garden() {
   const { gardenId } = useParams();
@@ -129,19 +119,10 @@ export default function Garden() {
     );
   }
 
-  const backgroundImage = BACKGROUNDS[garden.style] || BACKGROUNDS.flowers;
-
   return (
-    <div
-      className="page full-page"
-      style={{
-        position: "relative",
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="page full-page" style={{ position: "relative" }}>
+      <VideoBackground backgroundKey={garden.style || "flowers"} />
+
       <div className="wrap full-wrap" style={{ padding: 0 }}>
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
         <Header onSignInClick={() => setAuthOpen(true)} variant="minimal" />

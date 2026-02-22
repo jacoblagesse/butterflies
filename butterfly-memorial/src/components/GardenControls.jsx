@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { addDoc, collection, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, createPaymentIntentFn, confirmPaymentFn } from '../firebase';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import CheckoutForm from './CheckoutForm';
 import hatchGif from '../assets/misc/hatch.gif';
-import ButterflyIcon from '../assets/logos/butterfly.png';
+import ButterflyColorChanger from '../assets/misc/butterfly6colorchanger.gif';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [msg, setMsg] = useState('');
   const [qty, setQty] = useState('1');
+
+  // Payment flow state
+  const [panelStep, setPanelStep] = useState('info'); // 'info' | 'payment'
+  const [clientSecret, setClientSecret] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
+  const [creatingIntent, setCreatingIntent] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
 
   // Discover butterfly color folders dynamically (Vite import.meta.glob)
   const [colors, setColors] = useState([]);
@@ -99,6 +111,8 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const release = async () => {
     // Close shop immediately so it doesn't affect butterflies
     setOpen(null);
+    setPanelStep('info');
+    setClientSecret(null);
 
     // Pick chrysalis gif based on selectedColor (fallback to hatchGif)
     const colorKey = selectedColor ? selectedColor.toLowerCase() : null;
@@ -113,11 +127,88 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     setHatchPlaying(true);
   };
 
+  // Create PaymentIntent and move to payment step
+  const handleContinueToPayment = async () => {
+    setCreatingIntent(true);
+    setPaymentError(null);
+
+    try {
+      const colorKey = selectedColor ? selectedColor.toLowerCase() : null;
+      const result = await createPaymentIntentFn({
+        gardenId,
+        color: colorKey || '',
+        gifter: name.trim(),
+        message: msg.trim(),
+      });
+      setClientSecret(result.data.clientSecret);
+      setPanelStep('payment');
+    } catch (err) {
+      setPaymentError(err.message || 'Failed to start payment. Please try again.');
+    } finally {
+      setCreatingIntent(false);
+    }
+  };
+
+  // After Stripe confirms payment on client, verify server-side then release
+  const handlePaymentSuccess = async (paymentIntentId) => {
+    setConfirmingPayment(true);
+    setPaymentError(null);
+
+    try {
+      await confirmPaymentFn({ paymentIntentId });
+      // Payment verified — trigger hatch animation + butterfly creation
+      release();
+    } catch (err) {
+      setPaymentError(err.message || 'Payment verification failed.');
+    } finally {
+      setConfirmingPayment(false);
+    }
+  };
+
+  const handlePanelClose = () => {
+    setOpen(null);
+    setPanelStep('info');
+    setClientSecret(null);
+    setPaymentError(null);
+  };
+
   // Centralized disabled logic
   const isReleaseDisabled =
     typeof releaseDisabledPredicate === 'function'
       ? releaseDisabledPredicate(name, msg)
       : !(name && name.trim()) || !(msg && msg.trim());
+
+  // Stripe Elements appearance to match app style
+  const stripeAppearance = {
+    theme: 'night',
+    variables: {
+      colorPrimary: '#a78bfa',
+      colorBackground: '#1a1a2e',
+      colorText: '#ffffff',
+      colorDanger: '#ff6b6b',
+      fontFamily: 'inherit',
+      borderRadius: '10px',
+      spacingUnit: '4px',
+    },
+    rules: {
+      '.Input': {
+        border: '1px solid rgba(255,255,255,0.15)',
+        backgroundColor: '#1a1a2e',
+      },
+      '.Input:focus': {
+        border: '1px solid #a78bfa',
+        boxShadow: '0 0 0 1px #a78bfa',
+      },
+      '.Tab': {
+        border: '1px solid rgba(255,255,255,0.15)',
+        backgroundColor: '#1a1a2e',
+      },
+      '.Tab--selected': {
+        backgroundColor: '#2a2545',
+        border: '1px solid #a78bfa',
+      },
+    },
+  };
 
   return (
     <>
@@ -200,24 +291,23 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         <button
           className="btn"
           style={{
-            // Apply gradient matching the logo SVG colors
-            backgroundImage: 'linear-gradient(135deg, #6ec3ff 0%, #6c62ff 100%)',
+            background: 'transparent',
             color: '#fff',
             border: 'none',
-            animation: 'pulseShadow 2s ease-in-out infinite',
             transition: 'transform 100ms ease',
+            padding: 0,
           }}
           onClick={() => setOpen('buy')}
         >
           <img
-            src={ButterflyIcon}
+            src={ButterflyColorChanger}
             alt="Buy & Release"
-            style={{ height: '6rem', width: 'auto', display: 'inline-block', filter: 'brightness(0) invert(1)', padding: '20px'}}
+            style={{ height: '6rem', width: 'auto', display: 'block'}}
           />
         </button>
       </div>
 
-      <Panel open={open === 'list'} onClose={() => setOpen(null)} title="Butterflies in this garden">
+      <Panel open={open === 'list'} onClose={handlePanelClose} title="Butterflies in this garden">
         {butterflies.length === 0 && <div className="sub">No butterflies yet. Be the first to leave a message.</div>}
         {butterflies.map((b) => (
           <div
@@ -241,88 +331,173 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         ))}
       </Panel>
 
-      <Panel open={open === 'buy'} onClose={() => setOpen(null)} title="Pick a butterfly!">
-        <div style={{ display: 'grid', gap: 12 }}>
-          {/* Dynamic swipeable square list of butterfly colors */}
-          <div
-            className="shop-swipe-container"
-            role="list"
-            aria-label="Butterfly selections"
-            ref={(el) => {
-              if (!el) return;
-              if (el._dragBound) return;
-              el._dragBound = true;
+      <Panel
+        open={open === 'buy'}
+        onClose={handlePanelClose}
+        title={panelStep === 'info' ? 'Pick a butterfly!' : 'Complete Payment'}
+      >
+        {panelStep === 'info' && (
+          <div style={{ display: 'grid', gap: 12 }}>
+            {/* Dynamic swipeable square list of butterfly colors */}
+            <div
+              className="shop-swipe-container"
+              role="list"
+              aria-label="Butterfly selections"
+              ref={(el) => {
+                if (!el) return;
+                if (el._dragBound) return;
+                el._dragBound = true;
 
-              let isDown = false;
-              let startX = 0;
-              let startScroll = 0;
-              let moved = 0;
+                let isDown = false;
+                let startX = 0;
+                let startScroll = 0;
+                let moved = 0;
 
-              const onPointerDown = (e) => {
-                if (e.button !== 0) return; // left click only
-                isDown = true;
-                startX = e.clientX;
-                startScroll = el.scrollLeft;
-                moved = 0;
-              };
-              const onPointerMove = (e) => {
-                if (!isDown) return;
-                const dx = e.clientX - startX;
-                moved = Math.max(moved, Math.abs(dx));
-                el.scrollLeft = startScroll - dx;
-                // prevent text selection while dragging
-                e.preventDefault();
-              };
-              const end = () => {
-                isDown = false;
-              };
+                const onPointerDown = (e) => {
+                  if (e.button !== 0) return; // left click only
+                  isDown = true;
+                  startX = e.clientX;
+                  startScroll = el.scrollLeft;
+                  moved = 0;
+                };
+                const onPointerMove = (e) => {
+                  if (!isDown) return;
+                  const dx = e.clientX - startX;
+                  moved = Math.max(moved, Math.abs(dx));
+                  el.scrollLeft = startScroll - dx;
+                  // prevent text selection while dragging
+                  e.preventDefault();
+                };
+                const end = () => {
+                  isDown = false;
+                };
 
-              el.addEventListener('pointerdown', onPointerDown);
-              el.addEventListener('pointermove', onPointerMove);
-              el.addEventListener('pointerup', end);
-              el.addEventListener('pointercancel', end);
-            }}
-          >
-            {colors.map((label) => {
-              const a = assets[label] || {};
-              const isSelected = selectedColor === label;
-              const src = isSelected ? a.flying || a.resting : a.resting || a.flying;
-              return (
-                <button
-                  type="button"
-                  className={`shop-swipe-item${isSelected ? ' selected' : ''}`}
-                  role="listitem"
-                  key={label}
-                  aria-pressed={isSelected}
-                  onClick={() => setSelectedColor(isSelected ? null : label)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {src && <img className="shop-swipe-img" src={src} alt={`${label} butterfly`} />}
-                  <span className="shop-swipe-label">{label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Secondary header under the butterfly window */}
-          <div className="sub" style={{ fontWeight: 700 }}>
-            Leave a note for it to carry:
-          </div>
-
-          <input className="in" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="in" placeholder="A short message..." value={msg} onChange={(e) => setMsg(e.target.value)} />
-          <div className="cta-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
-            <button
-              className="btn primary"
-              onClick={release}
-              disabled={isReleaseDisabled}
-              aria-disabled={isReleaseDisabled}
-              title={isReleaseDisabled ? 'Select a butterfly first' : undefined}
+                el.addEventListener('pointerdown', onPointerDown);
+                el.addEventListener('pointermove', onPointerMove);
+                el.addEventListener('pointerup', end);
+                el.addEventListener('pointercancel', end);
+              }}
             >
-              $0.99 - Release
-            </button>
+              {colors.map((label) => {
+                const a = assets[label] || {};
+                const isSelected = selectedColor === label;
+                const src = isSelected ? a.flying || a.resting : a.resting || a.flying;
+                return (
+                  <button
+                    type="button"
+                    className={`shop-swipe-item${isSelected ? ' selected' : ''}`}
+                    role="listitem"
+                    key={label}
+                    aria-pressed={isSelected}
+                    onClick={() => setSelectedColor(isSelected ? null : label)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {src && <img className="shop-swipe-img" src={src} alt={`${label} butterfly`} />}
+                    <span className="shop-swipe-label">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Secondary header under the butterfly window */}
+            <div className="sub" style={{ fontWeight: 700 }}>
+              Leave a note for it to carry:
+            </div>
+
+            <input className="in" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+            <input className="in" placeholder="A short message..." value={msg} onChange={(e) => setMsg(e.target.value)} />
+
+            {paymentError && (
+              <div style={{
+                color: '#ff6b6b',
+                fontSize: '0.85rem',
+                padding: '8px 12px',
+                background: 'rgba(255,107,107,0.1)',
+                borderRadius: 8,
+              }}>
+                {paymentError}
+              </div>
+            )}
+
+            <div className="cta-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+              <button
+                className="btn primary"
+                onClick={handleContinueToPayment}
+                disabled={isReleaseDisabled || creatingIntent}
+                aria-disabled={isReleaseDisabled || creatingIntent}
+                title={isReleaseDisabled ? 'Select a butterfly first' : undefined}
+              >
+                {creatingIntent ? 'Loading...' : '$0.99 - Continue to Payment'}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {panelStep === 'payment' && clientSecret && (
+          <div style={{ display: 'grid', gap: 16 }}>
+            {/* Summary of selection */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 14px',
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: 10,
+            }}>
+              {selectedColor && assets[selectedColor] && (
+                <img
+                  src={assets[selectedColor].resting}
+                  alt={selectedColor}
+                  style={{ width: 40, height: 40 }}
+                />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                  {selectedColor || 'Butterfly'} for {name}
+                </div>
+                <div className="sub" style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontSize: '0.8rem',
+                }}>
+                  "{msg}"
+                </div>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap' }}>$0.99</div>
+            </div>
+
+            {paymentError && (
+              <div style={{
+                color: '#ff6b6b',
+                fontSize: '0.85rem',
+                padding: '8px 12px',
+                background: 'rgba(255,107,107,0.1)',
+                borderRadius: 8,
+              }}>
+                {paymentError}
+              </div>
+            )}
+
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: stripeAppearance,
+              }}
+            >
+              <CheckoutForm
+                onSuccess={handlePaymentSuccess}
+                onBack={() => {
+                  setPanelStep('info');
+                  setClientSecret(null);
+                  setPaymentError(null);
+                }}
+                loading={confirmingPayment}
+              />
+            </Elements>
+          </div>
+        )}
       </Panel>
     </>
   );
