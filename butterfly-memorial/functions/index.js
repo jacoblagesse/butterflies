@@ -30,7 +30,7 @@ exports.createPaymentIntent = onCall(
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 99, // $0.99 in cents
       currency: "usd",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       metadata: {
         gardenId,
         color: color || "",

@@ -37,19 +37,11 @@ export default function CheckoutForm({ onSuccess, onBack, loading: externalLoadi
   const isDisabled = !stripe || processing || externalLoading;
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
       <PaymentElement options={{ layout: 'tabs' }} />
 
       {error && (
-        <div style={{
-          color: '#ff6b6b',
-          fontSize: '0.85rem',
-          padding: '8px 12px',
-          background: 'rgba(255,107,107,0.1)',
-          borderRadius: 8,
-        }}>
-          {error}
-        </div>
+        <div className="buy-error">{error}</div>
       )}
 
       <div className="cta-row" style={{ justifyContent: 'space-between', marginTop: 4 }}>
@@ -66,7 +58,7 @@ export default function CheckoutForm({ onSuccess, onBack, loading: externalLoadi
           className="btn primary"
           disabled={isDisabled}
         >
-          {processing ? 'Processing...' : 'Pay & Release'}
+          {processing ? 'Processing...' : 'Pay $0.99 & Release'}
         </button>
       </div>
     </form>
