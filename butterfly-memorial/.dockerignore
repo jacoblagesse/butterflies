@@ -1,10 +1,8 @@
-
 node_modules
-npm-debug.log
+functions/node_modules
+dist
+.firebase
 .git
-.gitignore
-README.md
-.env
-.nyc_output
+npm-debug.log
 coverage
-.dockerignore
+.nyc_output
