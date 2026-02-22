@@ -8,6 +8,15 @@ const db = getFirestore();
 
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 
+// In the emulator, defineSecret may not resolve. Fall back to process.env.
+const getStripeKey = () => {
+  try {
+    const val = stripeSecretKey.value();
+    if (val) return val;
+  } catch { /* emulator — secret not available */ }
+  return process.env.STRIPE_SECRET_KEY;
+};
+
 exports.createPaymentIntent = onCall(
   { secrets: [stripeSecretKey] },
   async (request) => {
@@ -25,7 +34,7 @@ exports.createPaymentIntent = onCall(
       );
     }
 
-    const stripe = require("stripe")(stripeSecretKey.value());
+    const stripe = require("stripe")(getStripeKey());
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 99, // $0.99 in cents
@@ -73,7 +82,7 @@ exports.confirmPayment = onCall(
       );
     }
 
-    const stripe = require("stripe")(stripeSecretKey.value());
+    const stripe = require("stripe")(getStripeKey());
 
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 

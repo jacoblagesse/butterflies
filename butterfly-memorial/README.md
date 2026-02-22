@@ -35,17 +35,18 @@ VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
 ```
 
-### 3. Stripe secret key (for Cloud Functions)
+### 3. Stripe secret key
+
+Add your Stripe secret key to `.env.local` (same file as above):
+
+```env
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+```
+
+This is used by both the local emulator and Docker. For production deployment, set it as a Firebase secret:
 
 ```bash
 firebase functions:secrets:set STRIPE_SECRET_KEY
-# Paste your sk_test_... key when prompted
-```
-
-For local emulator testing, create `functions/.secret.local`:
-
-```
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 ```
 
 ## Development
@@ -60,10 +61,10 @@ Runs at `http://localhost:5173`. You can browse gardens and create them, but the
 
 ### Full stack (with payments)
 
-Terminal 1 — Firebase emulator:
+Terminal 1 — Firebase emulator (loads `STRIPE_SECRET_KEY` from `.env.local`):
 
 ```bash
-firebase emulators:start --only functions
+source .env.local && firebase emulators:start --only functions
 ```
 
 Terminal 2 — Vite dev server:
@@ -73,6 +74,20 @@ npm run dev
 ```
 
 The app auto-connects to the local functions emulator when running on `localhost`.
+
+### Docker (full stack with payments)
+
+If you prefer Docker over installing Firebase CLI locally:
+
+```bash
+docker compose up --build
+```
+
+This runs two containers:
+- **butterfly-app** — Vite dev server at `http://localhost:5173`
+- **firebase-emulator** — Functions emulator at `localhost:5001`, Emulator UI at `http://localhost:4000`
+
+Both containers read from `.env.local` — the Stripe secret key and all Firebase config are picked up automatically.
 
 ### Test payments
 

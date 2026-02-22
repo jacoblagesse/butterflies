@@ -8,3 +8,19 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - VITE_EMULATOR_HOST=firebase-emulator
+    depends_on:
+      - firebase-emulator
+
+  firebase-emulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.emulator
+    ports:
+      - "4000:4000"   # Emulator UI
+      - "5001:5001"   # Functions emulator
+    volumes:
+      - ./functions:/app/functions
+      - /app/functions/node_modules
+    env_file:
+      - .env.local

@@ -57,5 +57,6 @@ export const confirmPaymentFn = httpsCallable(functions, 'confirmPayment');
 
 // Connect to emulator in development
 if (import.meta.env.DEV) {
-  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  const emulatorHost = import.meta.env.VITE_EMULATOR_HOST || "127.0.0.1";
+  connectFunctionsEmulator(functions, emulatorHost, 5001);
 }
