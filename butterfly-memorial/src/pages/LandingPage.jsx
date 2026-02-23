@@ -6,6 +6,26 @@ import "./spirit-butterfly.css";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 
+const pricingTiers = [
+  { q: "1", p: "$0.99" },
+  { q: "5", p: "$4.95" },
+  { q: "20", p: "$19.80" },
+];
+
+const snapSection = {
+  height: "100vh",
+  scrollSnapAlign: "start",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",
+  zIndex: 1,
+  padding: "0 24px",
+  boxSizing: "border-box",
+  width: "100%",
+};
+
 export default function Landing() {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -13,7 +33,6 @@ export default function Landing() {
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef(null);
 
-  // Client-side search against honorees
   useEffect(() => {
     if (!searchQuery.trim()) {
       setResults([]);
@@ -72,18 +91,38 @@ export default function Landing() {
   }, [searchQuery]);
 
   return (
-    <PageLayout centered>
-      <section
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "20px",
-          width: "100%",
-        }}
-      >
-        {/* Search bar - floating */}
+    <PageLayout snap>
+
+      {/* ── Hero ── */}
+      <section style={{ ...snapSection, height: "calc(100vh - 80px)", gap: "0" }}>
+        {/* Grand title */}
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+          <h1 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(3rem, 9vw, 5.5rem)",
+            fontWeight: 700,
+            color: "#fff",
+            lineHeight: 1.08,
+            letterSpacing: "-0.02em",
+            margin: "0 0 16px",
+            textShadow: "0 2px 24px rgba(18,12,28,0.4)",
+          }}>
+            Butterfly Tribute
+          </h1>
+          <p style={{
+            fontFamily: "'Playfair Display', serif",
+            fontStyle: "italic",
+            fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
+            color: "rgba(255,255,255,0.82)",
+            margin: 0,
+            letterSpacing: "0.01em",
+            textShadow: "0 1px 8px rgba(18,12,28,0.3)",
+          }}>
+            A place to honor those we hold in our hearts
+          </p>
+        </div>
+
+        {/* Search bar */}
         <div
           className="hero-card"
           style={{
@@ -92,6 +131,7 @@ export default function Landing() {
             padding: "24px 28px",
             position: "relative",
             zIndex: 10,
+            marginBottom: "20px",
           }}
         >
           <div style={{ position: "relative" }}>
@@ -124,7 +164,6 @@ export default function Landing() {
             />
           </div>
 
-          {/* Search results dropdown */}
           {searchQuery.trim() && (
             <div style={{
               position: "absolute",
@@ -190,7 +229,6 @@ export default function Landing() {
           )}
         </div>
 
-        {/* Create garden button - floating */}
         <Link
           className="btn primary"
           to="/create"
@@ -205,7 +243,152 @@ export default function Landing() {
         >
           Create a Garden
         </Link>
+
+        {/* Scroll hint */}
+        <div style={{
+          position: "absolute",
+          bottom: "32px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "6px",
+          opacity: 0.5,
+          animation: "bob 2s ease-in-out infinite",
+        }}>
+          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>scroll</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
       </section>
+
+      {/* ── About ── */}
+      <section id="about" style={{ ...snapSection, scrollMarginTop: 0 }}>
+        <div className="hero-card" style={{
+          maxWidth: "620px",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "48px 40px",
+          textAlign: "center",
+        }}>
+          <h2 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(1.6rem, 4vw, 2.1rem)",
+            fontWeight: 700,
+            marginBottom: "1.2rem",
+            color: "var(--ink)",
+          }}>
+            Welcome to ButterflyTribute.com
+          </h2>
+          <p style={{
+            marginBottom: "1rem",
+            color: "var(--muted)",
+            fontSize: "0.95rem",
+            lineHeight: 1.75,
+            maxWidth: "520px",
+          }}>
+            Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
+            Together, we'll honor their spirit with heartfelt tributes in a tranquil space.
+          </p>
+          <p style={{
+            marginBottom: "2rem",
+            color: "var(--muted)",
+            fontSize: "0.95rem",
+            lineHeight: 1.75,
+            maxWidth: "520px",
+          }}>
+            As a gift to those grieving, we offer a free garden memorial and a butterfly. Once the garden is created,
+            you can share it with friends and family, who can release their own butterflies as a show of love and support.
+            This beautiful garden can be revisited anytime as a place where memories can continue to bloom.
+          </p>
+          <Link to="/create" className="btn primary" style={{ minWidth: "200px" }}>
+            Create your first Garden
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Pricing ── */}
+      <section id="pricing" style={{ ...snapSection, gap: "0" }}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h2 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(1.6rem, 4vw, 2.1rem)",
+            fontWeight: 700,
+            marginBottom: "0.5rem",
+            color: "#fff",
+            textShadow: "0 2px 16px rgba(18,12,28,0.4)",
+          }}>
+            Buy butterflies
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "0.95rem", margin: 0 }}>
+            Each butterfly carries a personal message to the garden
+          </p>
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "16px",
+          width: "100%",
+          maxWidth: "680px",
+        }}>
+          {pricingTiers.map((t, i) => (
+            <div
+              key={i}
+              className="hero-card"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: "28px 24px",
+                textAlign: "center",
+                gap: "8px",
+              }}
+            >
+              <div style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "14px",
+                background: "linear-gradient(135deg, rgba(212,169,199,0.2), rgba(155,142,196,0.15))",
+                display: "grid",
+                placeItems: "center",
+                fontSize: "22px",
+                marginBottom: "4px",
+              }}>
+                🦋
+              </div>
+              <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--ink)" }}>
+                {t.q} Butterfl{t.q !== "1" ? "ies" : "y"}
+              </div>
+              <div style={{ color: "var(--cta)", fontSize: "1.2rem", fontWeight: 700 }}>
+                {t.p}
+              </div>
+              <button className="btn ghost" style={{
+                fontSize: "0.9rem",
+                padding: "10px 24px",
+                width: "100%",
+              }}>
+                Buy
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <p style={{
+          position: "absolute",
+          bottom: "24px",
+          color: "rgba(255,255,255,0.45)",
+          fontSize: "13px",
+          margin: 0,
+        }}>
+          &copy; {new Date().getFullYear()} Butterfly Memorial
+        </p>
+      </section>
+
     </PageLayout>
   );
 }

@@ -15,7 +15,7 @@ const AMBIENT_BUTTERFLIES = [
   { id: "amb-6", gifter: "", message: "", color: "yellow" },
 ];
 
-export default function PageLayout({ children, centered = false }) {
+export default function PageLayout({ children, centered = false, snap = false }) {
   const [isAuthOpen, setAuthOpen] = useState(false);
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
@@ -28,7 +28,14 @@ export default function PageLayout({ children, centered = false }) {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
         position: "relative",
+        ...(snap && {
+          height: "100vh",
+          overflowY: "scroll",
+          scrollSnapType: "y proximity",
+          scrollPaddingTop: "80px",
+        }),
       }}
     >
       {/* Ambient butterfly layer */}
@@ -57,21 +64,41 @@ export default function PageLayout({ children, centered = false }) {
         ))}
       </div>
 
-      {/* Header - full width */}
-      <div style={{ position: "relative", zIndex: 1, width: "100%", padding: "28px 24px 0", boxSizing: "border-box" }}>
+      {/* Dark overlay for readability in snap mode */}
+      {snap && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(18, 12, 28, 0.38)",
+          zIndex: 0,
+          pointerEvents: "none",
+        }} />
+      )}
+
+      {/* Header */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          padding: "12px 16px",
+          boxSizing: "border-box",
+        }}
+      >
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
         <Header onSignInClick={() => setAuthOpen(true)} />
       </div>
 
       {/* Content area */}
       <div
-        className="wrap"
+        className={snap ? undefined : "wrap"}
         style={{
           position: "relative",
           zIndex: 1,
           paddingTop: 0,
           boxSizing: "border-box",
-          ...(centered && {
+          width: "100%",
+          ...(!snap && centered && {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -83,10 +110,11 @@ export default function PageLayout({ children, centered = false }) {
         {children}
       </div>
 
-      {/* Footer */}
-      <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
-        &copy; {new Date().getFullYear()} Butterfly Memorial
-      </footer>
+      {!snap && (
+        <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
+          &copy; {new Date().getFullYear()} Butterfly Memorial
+        </footer>
+      )}
     </div>
   );
 }

@@ -98,6 +98,14 @@ function UserDropdown({ onSignInClick, variant = 'default' }) {
   );
 }
 
+function handleSmoothScroll(e, id) {
+  const el = document.getElementById(id);
+  if (el) {
+    e.preventDefault();
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 export default function Header({ onSignInClick, variant = 'default' }) {
   if (variant === 'minimal') {
     return (
@@ -122,13 +130,10 @@ export default function Header({ onSignInClick, variant = 'default' }) {
   }
 
   return (
-    <header>
-      <Link className="brand" to="/">
-        <img src={LogoUrl} alt="Butterfly Memorial logo" className="logo" style={{ width: '180px', height: '60px' }} />
-      </Link>
+    <header style={{ justifyContent: 'flex-end' }}>
       <nav>
-        <Link to="/pricing">Pricing</Link>
-        <Link to="/about">About</Link>
+        <a href="/#about" onClick={(e) => handleSmoothScroll(e, 'about')} style={{ color: 'rgba(255,255,255,0.8)' }}>About</a>
+        <a href="/#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')} style={{ color: 'rgba(255,255,255,0.8)' }}>Pricing</a>
         <UserDropdown onSignInClick={onSignInClick} />
       </nav>
     </header>
