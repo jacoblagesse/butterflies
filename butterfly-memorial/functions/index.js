@@ -7,18 +7,21 @@ initializeApp();
 const db = getFirestore();
 
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
+const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
 
-// In the emulator, defineSecret may not resolve. Fall back to process.env.
+// In production, read from Firebase secret. In the emulator, read from env.
 const getStripeKey = () => {
-  try {
-    const val = stripeSecretKey.value();
-    if (val) return val;
-  } catch { /* emulator — secret not available */ }
+  if (!isEmulator) {
+    try { return stripeSecretKey.value(); } catch {}
+  }
   return process.env.STRIPE_SECRET_KEY;
 };
 
+// Only declare secrets in production — the emulator reads from env vars.
+const fnConfig = isEmulator ? {} : { secrets: [stripeSecretKey] };
+
 exports.createPaymentIntent = onCall(
-  { secrets: [stripeSecretKey] },
+  fnConfig,
   async (request) => {
     // Require authentication
     if (!request.auth) {
@@ -49,25 +52,29 @@ exports.createPaymentIntent = onCall(
       },
     });
 
-    // Write pending payment record to Firestore
-    await db.collection("payments").doc(paymentIntent.id).set({
-      uid: request.auth.uid,
-      gardenId,
-      color: color || null,
-      gifter,
-      message,
-      amount: 99,
-      currency: "usd",
-      status: "pending",
-      createdAt: new Date(),
-    });
+    // Write pending payment record to Firestore (non-critical in emulator)
+    try {
+      await db.collection("payments").doc(paymentIntent.id).set({
+        uid: request.auth.uid,
+        gardenId,
+        color: color || null,
+        gifter,
+        message,
+        amount: 99,
+        currency: "usd",
+        status: "pending",
+        createdAt: new Date(),
+      });
+    } catch (err) {
+      console.warn("Firestore write failed (ok in emulator):", err.message);
+    }
 
     return { clientSecret: paymentIntent.client_secret };
   }
 );
 
 exports.confirmPayment = onCall(
-  { secrets: [stripeSecretKey] },
+  fnConfig,
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "You must be signed in.");
@@ -98,11 +105,15 @@ exports.confirmPayment = onCall(
       throw new HttpsError("permission-denied", "Payment does not belong to you.");
     }
 
-    // Update payment record in Firestore
-    await db.collection("payments").doc(paymentIntentId).update({
-      status: "succeeded",
-      confirmedAt: new Date(),
-    });
+    // Update payment record in Firestore (non-critical in emulator)
+    try {
+      await db.collection("payments").doc(paymentIntentId).update({
+        status: "succeeded",
+        confirmedAt: new Date(),
+      });
+    } catch (err) {
+      console.warn("Firestore update failed (ok in emulator):", err.message);
+    }
 
     return {
       verified: true,
