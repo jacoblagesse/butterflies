@@ -19,9 +19,9 @@ const pricingTiers = [
 ];
 
 const BUTTERFLY_CONFIG = {
-  1: { size: 72, offsets: [{ x: 0, y: 0 }] },
-  3: { size: 52, offsets: [{ x: -22, y: 10 }, { x: 0, y: -8 }, { x: 22, y: 10 }] },
-  5: { size: 40, offsets: [{ x: 0, y: -18 }, { x: 17, y: -6 }, { x: 11, y: 15 }, { x: -11, y: 15 }, { x: -17, y: -6 }] },
+  1: { size: 94, offsets: [{ x: 0, y: 0 }] },
+  3: { size: 68, offsets: [{ x: -22, y: 10 }, { x: 0, y: -8 }, { x: 22, y: 10 }] },
+  5: { size: 52, offsets: [{ x: 0, y: -18 }, { x: 17, y: -6 }, { x: 11, y: 15 }, { x: -11, y: 15 }, { x: -17, y: -6 }] },
 };
 
 const snapSection = {

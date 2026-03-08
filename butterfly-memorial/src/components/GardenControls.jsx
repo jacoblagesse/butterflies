@@ -5,7 +5,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './CheckoutForm';
 import hatchGif from '../assets/misc/hatch.gif';
-import ButterflyColorChanger from '../assets/misc/butterfly6colorchanger.gif';
+import ButterflyColorChanger from '../assets/logos/butterfly.png';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -299,6 +299,10 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       {/* Local keyframes for pulsing shadow */}
       <style>
         {`
+          @keyframes hueShift {
+            0%   { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+          }
           @keyframes pulseShadow {
             0% { box-shadow: 0 0 10px 5px rgba(255,255,255,1); }
             50% { box-shadow: 0 0 10px 10px rgba(255,255,255,1); }
@@ -310,6 +314,49 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             animation: none !important;
             filter: none !important;
           }
+          .release-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, rgba(155,142,196,0.55), rgba(212,169,199,0.45));
+            border: none;
+            border-radius: 16px;
+            padding: 10px 14px 6px;
+            cursor: pointer;
+            transition: transform 120ms ease, background 200ms ease, box-shadow 200ms ease;
+            box-shadow: 0 4px 16px rgba(125,107,145,0.25);
+            backdrop-filter: blur(8px);
+          }
+          .release-btn:hover {
+            background: linear-gradient(135deg, rgba(155,142,196,0.8), rgba(212,169,199,0.7));
+            transform: scale(1.08);
+            box-shadow: 0 8px 28px rgba(125,107,145,0.45);
+          }
+          .release-btn:active {
+            transform: scale(0.97);
+          }
+          .tile-img-wrap {
+            position: relative;
+          }
+          .tile-img-wrap .tile-img {
+            display: block;
+            transition: opacity 350ms ease;
+          }
+          .tile-img-wrap .tile-img-flying {
+            position: absolute;
+            top: 0; left: 0;
+          }
+          .release-label {
+            font-family: Inter, system-ui, sans-serif;
+            font-style: normal;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(44,40,54,0.4);
+            letter-spacing: 0.02em;
+            pointer-events: none;
+          }
         `}
       </style>
 
@@ -317,21 +364,12 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         <button className="btn ghost" onClick={() => setOpen('list')}>
           Butterflies ({butterflies.length})
         </button>
-        <button
-          className="btn"
-          style={{
-            background: 'transparent',
-            color: '#fff',
-            border: 'none',
-            transition: 'transform 100ms ease',
-            padding: 0,
-          }}
-          onClick={() => setOpen('buy')}
-        >
+        <button className="release-btn" onClick={() => setOpen('buy')}>
+          <span className="release-label">Release me!</span>
           <img
             src={ButterflyColorChanger}
             alt="Buy & Release"
-            style={{ height: '6rem', width: 'auto', display: 'block'}}
+            style={{ height: '6rem', width: 'auto', display: 'block', animation: 'hueShift 4s linear infinite' }}
           />
         </button>
       </div>
@@ -372,7 +410,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 {colors.map((label) => {
                   const a = assets[label] || {};
                   const isSelected = selectedColor === label;
-                  const src = isSelected ? a.flying || a.resting : a.resting || a.flying;
                   return (
                     <button
                       type="button"
@@ -382,7 +419,21 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                       onClick={() => setSelectedColor(isSelected ? null : label)}
                     >
                       {isSelected && <span className="tile-check">✓</span>}
-                      {src && <img className="tile-img" src={src} alt={`${label} butterfly`} />}
+                      <div className="tile-img-wrap">
+                        <img
+                          className="tile-img"
+                          src={a.resting || a.flying}
+                          alt={`${label} butterfly`}
+                          style={{ opacity: isSelected ? 0 : 1 }}
+                        />
+                        <img
+                          className="tile-img tile-img-flying"
+                          src={a.flying || a.resting}
+                          alt=""
+                          aria-hidden="true"
+                          style={{ opacity: isSelected ? 1 : 0 }}
+                        />
+                      </div>
                       <span className="tile-label">{label}</span>
                     </button>
                   );
