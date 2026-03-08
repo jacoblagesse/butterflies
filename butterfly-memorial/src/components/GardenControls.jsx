@@ -382,14 +382,15 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             className="card"
             style={{ marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}
           >
-            <div
-              className="badge"
-              style={{ width: 36, height: 36, borderRadius: 10, display: 'grid', placeItems: 'center' }}
-            >
-              🦋
-            </div>
+            {(() => {
+              const colorKey = b.color ? b.color.charAt(0).toUpperCase() + b.color.slice(1) : null;
+              const gifSrc = colorKey && assets[colorKey] ? assets[colorKey].resting || assets[colorKey].flying : null;
+              return gifSrc
+                ? <img src={gifSrc} alt={b.color} style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }} />
+                : <div className="badge" style={{ width: 44, height: 44, borderRadius: 10, display: 'grid', placeItems: 'center', fontSize: 22 }}>🦋</div>;
+            })()}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700 }}>{b.from}</div>
+              <div style={{ fontWeight: 700 }}>{b.gifter || b.from || 'Anonymous'}</div>
               <div className="sub" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {b.message}
               </div>

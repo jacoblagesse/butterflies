@@ -12,7 +12,6 @@ import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import "./spirit-butterfly.css";
 
 import LogoUrl from "../assets/logos/logo.svg";
-import GardenSign from "../assets/backgrounds/garden_sign.png"; // add sign background
 
 export default function Garden() {
   const { gardenId } = useParams();
@@ -191,43 +190,57 @@ export default function Garden() {
               </div>
             )}
 
-            {/* Bottom-center honoree info with sign background */}
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: -20,
-                zIndex: 5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none",
-              }}
-            >
+            {/* Top-left honoree info */}
+            {honoree && (
               <div
                 style={{
-                  textAlign: "center",
-                  color: "#fff",
-                  textShadow: "0 2px 6px rgba(0,0,0,0.35)",
-                  height: 200,
-                  minWidth: 600,
-                  backgroundImage: `url(${GardenSign})`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  backgroundSize: "contain",
-                  padding: "24px 32px",
+                  position: "fixed",
+                  top: 80,
+                  left: 24,
+                  zIndex: 20,
+                  pointerEvents: "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
                 }}
               >
-                <div className="identity-name" style={{ marginBottom: 4, marginTop: 50, fontSize: 30 }}>
-                  {honoree ? `${honoree.first_name} ${honoree.last_name}` : ""}
+                <div style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.95rem, 4.5vw, 2.85rem)",
+                  color: "#fff",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.7), 0 3px 20px rgba(0,0,0,0.5)",
+                  lineHeight: 1.2,
+                }}>
+                  {honoree.first_name} {honoree.last_name}
                 </div>
-                <div className="sub" style={{ marginBottom: 6 }}>
-                  {honoree ? honoree.dates || "—" : ""}
-                </div>
-                <div className="sub">{honoree ? honoree.obit || "" : ""}</div>
+                {honoree.dates && (
+                  <div style={{
+                    fontFamily: "Inter, system-ui, sans-serif",
+                    fontWeight: 500,
+                    fontSize: "clamp(1.2rem, 2.25vw, 1.5rem)",
+                    color: "rgba(255,255,255,0.88)",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+                  }}>
+                    {honoree.dates}
+                  </div>
+                )}
+                {honoree.obit && (
+                  <div style={{
+                    fontFamily: "Inter, system-ui, sans-serif",
+                    fontStyle: "italic",
+                    fontWeight: 400,
+                    fontSize: "clamp(1.1rem, 1.95vw, 1.35rem)",
+                    color: "rgba(255,255,255,0.75)",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+                    maxWidth: 280,
+                    lineHeight: 1.6,
+                  }}>
+                    {honoree.obit}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
             <GardenControls butterflies={butterflies} gardenId={gardenId} />
           </div>
