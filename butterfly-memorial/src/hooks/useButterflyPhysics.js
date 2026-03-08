@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useButterflyPhysics(butterflies, containerRef) {
+export function useButterflyPhysics(butterflies, containerRef, frozenRef) {
   const butterfliesStateRef = useRef([]);
   const [, setTick] = useState(0);
 
@@ -89,7 +89,9 @@ export function useButterflyPhysics(butterflies, containerRef) {
       lastTime = now;
 
       const list = butterfliesStateRef.current;
+      const frozen = frozenRef?.current;
       for (let i = 0; i < list.length; i++) {
+        if (frozen && frozen.has(list[i].id)) continue;
         updateButterflyPosition(list[i], dt);
       }
 

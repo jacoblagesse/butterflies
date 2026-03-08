@@ -50,10 +50,10 @@ export default function FlyingButterfly({
         pointerEvents: "auto", // enable hover
         zIndex: Math.round(size * 100),
       }}
-      onMouseEnter={() => { setHovered(true); onHoverStart && onHoverStart(); }}
+      onMouseEnter={(e) => { setHovered(true); onHoverStart && onHoverStart(e.currentTarget.getBoundingClientRect()); }}
       onMouseLeave={() => { setHovered(false); onHoverEnd && onHoverEnd(); }}
     >
-      <img src={butterflyImage} alt={label} title={label} />
+      <img src={butterflyImage} alt={label} />
     </div>
   );
 }
