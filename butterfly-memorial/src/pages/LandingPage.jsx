@@ -2,15 +2,27 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import "./spirit-butterfly.css";
+import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
+import butterflyBlue from "../assets/butterflies/blue/flying.gif";
+import butterflyPink from "../assets/butterflies/pink/flying.gif";
+import butterflyPurple from "../assets/butterflies/purple/flying.gif";
+import butterflyGreen from "../assets/butterflies/green/flying.gif";
+import butterflyOrange from "../assets/butterflies/orange/flying.gif";
 
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 const pricingTiers = [
-  { q: "1", p: "$0.99" },
-  { q: "5", p: "$4.95" },
-  { q: "20", p: "$19.80" },
+  { q: "1", p: "$1.98", gifs: [butterflyBlue] },
+  { q: "3", p: "$4.98", gifs: [butterflyBlue, butterflyPink, butterflyPurple] },
+  { q: "10", p: "$9.98", gifs: [butterflyBlue, butterflyPink, butterflyPurple, butterflyGreen, butterflyOrange] },
 ];
+
+const BUTTERFLY_CONFIG = {
+  1: { size: 72, offsets: [{ x: 0, y: 0 }] },
+  3: { size: 52, offsets: [{ x: -22, y: 10 }, { x: 0, y: -8 }, { x: 22, y: 10 }] },
+  5: { size: 40, offsets: [{ x: 0, y: -18 }, { x: 17, y: -6 }, { x: 11, y: 15 }, { x: -11, y: 15 }, { x: -17, y: -6 }] },
+};
 
 const snapSection = {
   height: "100vh",
@@ -97,26 +109,26 @@ export default function Landing() {
       <section style={{ ...snapSection, height: "calc(100vh - 80px)", gap: "0" }}>
         {/* Grand title */}
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <h1 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(3rem, 9vw, 5.5rem)",
-            fontWeight: 700,
-            color: "#fff",
-            lineHeight: 1.08,
-            letterSpacing: "-0.02em",
-            margin: "0 0 16px",
-            textShadow: "0 2px 24px rgba(18,12,28,0.4)",
-          }}>
-            Butterfly Tribute
-          </h1>
+          <img
+            src={logoSvg}
+            alt="Butterfly Tribute"
+            style={{
+              width: "clamp(280px, 60vw, 600px)",
+              height: "auto",
+              display: "block",
+              margin: "0 auto 16px",
+              filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.7)) drop-shadow(0 4px 32px rgba(18,12,28,0.6))",
+            }}
+          />
           <p style={{
             fontFamily: "'Playfair Display', serif",
             fontStyle: "italic",
+            fontWeight: 700,
             fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
             color: "rgba(255,255,255,0.82)",
             margin: 0,
             letterSpacing: "0.01em",
-            textShadow: "0 1px 8px rgba(18,12,28,0.3)",
+            textShadow: "0 1px 4px rgba(0,0,0,0.8), 0 2px 16px rgba(18,12,28,0.6)",
           }}>
             A place to honor those we hold in our hearts
           </p>
@@ -316,15 +328,21 @@ export default function Landing() {
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h2 style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(1.6rem, 4vw, 2.1rem)",
-            fontWeight: 700,
+            fontSize: "clamp(2rem, 5vw, 2.8rem)",
+            fontWeight: 800,
             marginBottom: "0.5rem",
             color: "#fff",
-            textShadow: "0 2px 16px rgba(18,12,28,0.4)",
+            textShadow: "0 2px 6px rgba(0,0,0,0.7), 0 4px 24px rgba(18,12,28,0.6)",
           }}>
             Buy butterflies
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "0.95rem", margin: 0 }}>
+          <p style={{
+            color: "rgba(255,255,255,0.92)",
+            fontSize: "1.05rem",
+            fontWeight: 600,
+            margin: 0,
+            textShadow: "0 1px 4px rgba(0,0,0,0.7), 0 2px 12px rgba(18,12,28,0.5)",
+          }}>
             Each butterfly carries a personal message to the garden
           </p>
         </div>
@@ -347,30 +365,43 @@ export default function Landing() {
                 padding: "28px 24px",
                 textAlign: "center",
                 gap: "8px",
+                border: "6px solid #fff",
               }}
             >
-              <div style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "linear-gradient(135deg, rgba(212,169,199,0.2), rgba(155,142,196,0.15))",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "22px",
-                marginBottom: "4px",
-              }}>
-                🦋
+              <div style={{ position: "relative", width: "90px", height: "84px", marginBottom: "4px", flexShrink: 0 }}>
+                {t.gifs.map((gif, gi) => {
+                  const { size, offsets } = BUTTERFLY_CONFIG[t.gifs.length];
+                  const { x, y } = offsets[gi];
+                  return (
+                    <img
+                      key={gi}
+                      src={gif}
+                      alt="butterfly"
+                      style={{
+                        position: "absolute",
+                        width: `${size}px`,
+                        height: `${size}px`,
+                        objectFit: "contain",
+                        top: "50%",
+                        left: "50%",
+                        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                        zIndex: gi,
+                      }}
+                    />
+                  );
+                })}
               </div>
-              <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--ink)" }}>
+              <div style={{ fontWeight: 800, fontSize: "1.25rem", color: "var(--ink)", textShadow: "0 1px 4px rgba(44,40,54,0.15)" }}>
                 {t.q} Butterfl{t.q !== "1" ? "ies" : "y"}
               </div>
-              <div style={{ color: "var(--cta)", fontSize: "1.2rem", fontWeight: 700 }}>
+              <div style={{ color: "var(--cta)", fontSize: "1.4rem", fontWeight: 800, textShadow: "0 1px 4px rgba(125,107,145,0.2)" }}>
                 {t.p}
               </div>
               <button className="btn ghost" style={{
                 fontSize: "0.9rem",
                 padding: "10px 24px",
                 width: "100%",
+                border: "4px solid #fff",
               }}>
                 Buy
               </button>

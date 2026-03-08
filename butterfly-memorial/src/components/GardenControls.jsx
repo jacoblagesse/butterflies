@@ -9,6 +9,27 @@ import ButterflyColorChanger from '../assets/misc/butterfly6colorchanger.gif';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
+// Parse total GIF duration by reading Graphic Control Extension blocks from binary
+async function getGifDurationMs(src) {
+  try {
+    const resp = await fetch(src);
+    const buf = await resp.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let totalCs = 0;
+    for (let i = 0; i < bytes.length - 5; i++) {
+      if (bytes[i] === 0x21 && bytes[i + 1] === 0xF9 && bytes[i + 2] === 0x04) {
+        // delay is 2 bytes little-endian at i+4, in centiseconds
+        const delay = bytes[i + 4] | (bytes[i + 5] << 8);
+        totalCs += delay;
+        i += 5;
+      }
+    }
+    return totalCs > 0 ? totalCs * 10 : 5000;
+  } catch {
+    return 5000;
+  }
+}
+
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
@@ -30,6 +51,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [assets, setAssets] = useState({}); // { ColorName: { resting, flying } }
   const [selectedColor, setSelectedColor] = useState(null);
   const [hatchPlaying, setHatchPlaying] = useState(false);
+  const [hatchFading, setHatchFading] = useState(false);
   const [hatchKey, setHatchKey] = useState(0); // force GIF remount each play
   const [spawnVisible, setSpawnVisible] = useState(false); // show butterfly centered after hatch
   const [hatchSrc, setHatchSrc] = useState(hatchGif);
@@ -220,7 +242,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   return (
     <>
       {/* Full-screen hatch overlay */}
-      <div className={`hatch-overlay ${hatchPlaying ? 'open' : ''}`} aria-hidden={!hatchPlaying}>
+      <div className={`hatch-overlay ${hatchPlaying && !hatchFading ? 'open' : ''}`} aria-hidden={!hatchPlaying}>
         {hatchPlaying && (
           <img
             key={hatchKey}
@@ -228,25 +250,25 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             src={hatchSrc}
             alt="Butterfly hatching"
             style={{ boxShadow: 'none', filter: 'none', animation: 'none' }}
-            onLoad={() => {
-              // Play long enough to ensure full GIF completes
-              const hatchDurationMs = 5000;
+            onLoad={async () => {
+              const duration = await getGifDurationMs(hatchSrc);
               setTimeout(async () => {
                 try {
-                  const butterflyId = await createButterfly();
-                  setHatchPlaying(false);
-                  setSpawnVisible(false);
-                  setTimeout(() => {
-                    setSpawnVisible(false);
-                    setName('');
-                    setMsg('');
-                    setQty('1');
-                    setSelectedColor(null);
-                  }, 1800);
+                  await createButterfly();
                 } catch (e) {
-                  setHatchPlaying(false);
+                  // ignore — still fade out
                 }
-              }, hatchDurationMs);
+                // Fade out the overlay (CSS transition: 280ms)
+                setHatchFading(true);
+                setTimeout(() => {
+                  setHatchPlaying(false);
+                  setHatchFading(false);
+                  setName('');
+                  setMsg('');
+                  setQty('1');
+                  setSelectedColor(null);
+                }, 350);
+              }, duration);
             }}
           />
         )}
