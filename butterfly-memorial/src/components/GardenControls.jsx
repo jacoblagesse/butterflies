@@ -362,7 +362,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
 
       <div className="garden-controls" style={{ zIndex: 21 }}>
         <button className="btn ghost" onClick={() => setOpen('list')}>
-          Butterflies ({butterflies.length})
+          Butterflies ({butterflies.filter(b => b.color !== 'white').length})
         </button>
         <button className="release-btn" onClick={() => setOpen('buy')}>
           <span className="release-label">Release me!</span>
@@ -375,8 +375,17 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       </div>
 
       <Panel open={open === 'list'} onClose={handlePanelClose} title="Butterflies in this garden">
-        {butterflies.length === 0 && <div className="sub">No butterflies yet. Be the first to leave a message.</div>}
-        {butterflies.map((b) => (
+        {(() => {
+          const listedButterflies = butterflies.filter(b => b.color !== 'white');
+          if (listedButterflies.length === 0) return (
+            <div style={{ textAlign: 'center', padding: '12px 0' }}>
+              <div className="sub" style={{ marginBottom: 14 }}>No butterflies yet. Be the first to leave a message.</div>
+              <button className="btn primary" onClick={() => { handlePanelClose(); setOpen('buy'); }}>
+                Release a butterfly
+              </button>
+            </div>
+          );
+          return listedButterflies.map((b) => (
           <div
             key={b.id}
             className="card"
@@ -396,7 +405,8 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
               </div>
             </div>
           </div>
-        ))}
+        ));
+        })()}
       </Panel>
 
       <Panel open={open === 'buy'} onClose={handlePanelClose} stepLabel={`Step ${wizardStep} of 3`}>

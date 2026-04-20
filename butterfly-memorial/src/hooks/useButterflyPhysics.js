@@ -31,7 +31,9 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef) {
 
       return {
         id: b.id || i,
-        label: `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
+        label: b.color === "white"
+          ? `${b.gifter || b.from || "Garden"}'s butterfly`
+          : `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
         x,
         y,
         // Heading-based movement for smooth curves

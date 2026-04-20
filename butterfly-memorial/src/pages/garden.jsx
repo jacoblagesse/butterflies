@@ -25,7 +25,7 @@ export default function Garden() {
   const [isAuthOpen, setAuthOpen] = useState(false);
 
   // Hover card: {visible, name, message, x, y, tailSide}
-  const [hoverCard, setHoverCard] = useState({ visible: false, name: "", message: "", x: 0, y: 0, tailSide: "left" });
+  const [hoverCard, setHoverCard] = useState({ visible: false, name: "", message: "", x: 0, y: 0, tailSide: "left", isHonoree: false });
   const frozenRef = useRef(new Set()); // ids of butterflies frozen on hover
 
   const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef);
@@ -121,11 +121,17 @@ export default function Garden() {
                 color={s.color || null}
                 onHoverStart={(rect) => {
                   frozenRef.current.add(s.id);
-                  // parse "Name: message"
+                  const isHonoree = s.color === "white";
                   const txt = s.label || "";
-                  const idx = txt.indexOf(":");
-                  const name = idx === -1 ? txt.trim() : txt.slice(0, idx).trim();
-                  const message = idx === -1 ? "" : txt.slice(idx + 1).trim();
+                  let name, message;
+                  if (isHonoree) {
+                    name = txt.trim();
+                    message = "";
+                  } else {
+                    const idx = txt.indexOf(":");
+                    name = idx === -1 ? txt.trim() : txt.slice(0, idx).trim();
+                    message = idx === -1 ? "" : txt.slice(idx + 1).trim();
+                  }
 
                   // Position bubble in the direction the butterfly faces
                   // direction: -1 = facing right (vx > 0), 1 = facing left
@@ -159,7 +165,7 @@ export default function Garden() {
                     rect.top + rect.height / 2 - cardH / 2,
                     vh - cardH - 8
                   ));
-                  setHoverCard({ visible: true, name, message, x, y, tailSide });
+                  setHoverCard({ visible: true, name, message, x, y, tailSide, isHonoree });
                 }}
                 onHoverEnd={() => {
                   frozenRef.current.delete(s.id);
@@ -179,7 +185,7 @@ export default function Garden() {
                   zIndex: 200,
                 }}
               >
-                <div className="bf-hover-from">A message from</div>
+                {!hoverCard.isHonoree && <div className="bf-hover-from">A message from</div>}
                 <div className="bf-hover-name">{hoverCard.name}</div>
                 {hoverCard.message && (
                   <>
