@@ -39,7 +39,8 @@
 
 /* Root & layout */
 html, body, #root{height:100%}
-body{margin:0; font-size:var(--fs-base);}
+body{margin:0; font-size:var(--fs-base); scrollbar-width:none;}
+body::-webkit-scrollbar{display:none}
 
 .page{
   min-height:100vh;
@@ -49,7 +50,9 @@ body{margin:0; font-size:var(--fs-base);}
   font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   display:flex; flex-direction:column; overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  scrollbar-width:none;
 }
+.page::-webkit-scrollbar{display:none}
 
 .wrap{
   flex:1; display:flex; flex-direction:column;
@@ -178,7 +181,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 
 .theme-tile {
   display: block;
-  text-align: left;
+  text-align: center;
   background: var(--card-solid);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);

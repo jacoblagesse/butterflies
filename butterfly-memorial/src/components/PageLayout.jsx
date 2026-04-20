@@ -77,18 +77,8 @@ export default function PageLayout({ children, centered = false, snap = false })
       )}
 
       {/* Header */}
-      <div
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          padding: "12px 16px",
-          boxSizing: "border-box",
-        }}
-      >
-        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-        <Header onSignInClick={() => setAuthOpen(true)} />
-      </div>
+      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+      <Header onSignInClick={() => setAuthOpen(true)} />
 
       {/* Content area */}
       <div

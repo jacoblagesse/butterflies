@@ -80,11 +80,18 @@ export default function Profile() {
     backgroundPosition: 'center',
   };
 
+  const headerBlock = (
+    <>
+      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+      <Header onSignInClick={() => setAuthOpen(true)} />
+    </>
+  );
+
   if (authLoading) {
     return (
       <div className="page" style={bgStyle}>
+        {headerBlock}
         <div className="wrap">
-          <Header onSignInClick={() => setAuthOpen(true)} />
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
             <div className="hero-card" style={{ textAlign: 'center', padding: '40px' }}>
               <p style={{ color: 'var(--muted)' }}>Loading...</p>
@@ -98,9 +105,8 @@ export default function Profile() {
   if (!isAuthenticated) {
     return (
       <div className="page" style={bgStyle}>
+        {headerBlock}
         <div className="wrap">
-          <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-          <Header onSignInClick={() => setAuthOpen(true)} />
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
             <div className="hero-card" style={{ textAlign: 'center', padding: '44px 36px', maxWidth: '460px' }}>
               <h2 style={{ marginBottom: '12px', fontSize: 'clamp(1.4rem, 3.5vw, 1.8rem)' }}>
@@ -121,9 +127,8 @@ export default function Profile() {
 
   return (
     <div className="page" style={bgStyle}>
+      {headerBlock}
       <div className="wrap">
-        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-        <Header onSignInClick={() => setAuthOpen(true)} />
 
         <section style={{ flex: 1, paddingTop: '24px' }}>
           <div className="hero-card" style={{ maxWidth: '700px', margin: '0 auto' }}>

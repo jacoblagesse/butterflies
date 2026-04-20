@@ -32,7 +32,7 @@ const BACKGROUNDS = [
   { key: "tropical", label: "Tropical", icon: iconTropical },
   { key: "lake", label: "Lake", icon: iconLake },
   { key: "desert", label: "Desert", icon: iconDesert },
-  { key: "japanese garden", label: "Japanese Garden", icon: iconJapanese },
+  { key: "japanese garden", label: "Zen", icon: iconJapanese },
 ];
 
 export default function Creation() {
@@ -178,10 +178,12 @@ export default function Creation() {
         ))}
       </div>
 
+      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+      <Header onSignInClick={() => setAuthOpen(true)} />
+
       <div
         className="wrap full-wrap"
         style={{
-          // Flex column: header, content, footer within viewport
           height: "100%",
           display: "flex",
           flexDirection: "column",
@@ -189,9 +191,6 @@ export default function Creation() {
           zIndex: 2,
         }}
       >
-        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-        <Header onSignInClick={() => setAuthOpen(true)} />
-
         <section
           className="hero"
           style={{
@@ -213,15 +212,32 @@ export default function Creation() {
               overflow: "auto",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span className="eyebrow">Step {step} of 4</span>
+              <button
+                onClick={() => navigate("/")}
+                aria-label="Close"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 4,
+                  color: "var(--muted)",
+                  lineHeight: 0,
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
 
             <div className="step-viewport" style={{ marginTop: 16 }}>
               {step === 1 && (
                 <div className={`step-panel ${dir === "forward" ? "slide-forward" : "slide-back"}`}>
                   <h2 className="h2">Pick a garden</h2>
-                  <p className="sub">Choose a style. You can change it later.</p>
+                  <p className="sub">Choose a style.</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 12 }}>
                     {BACKGROUNDS.map((t) => (
                       <button
