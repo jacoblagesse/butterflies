@@ -13,17 +13,26 @@ import { collection, addDoc, getDoc, doc } from "firebase/firestore";
 
 import LogoUrl from "../assets/logos/logo.svg";
 
+import iconMountain from "../assets/garden-icons/garden_icons_mountain.png";
+import iconTropical from "../assets/garden-icons/garden_icons_tropical.png";
+import iconLake from "../assets/garden-icons/garden_icons_lake.png";
+import iconDesert from "../assets/garden-icons/garden_icons_desert.png";
+import iconJapanese from "../assets/garden-icons/garden_icons_japanese.png";
+
 const AMBIENT_BUTTERFLIES = [
   { id: "amb-1", gifter: "", message: "", color: "blue" },
   { id: "amb-2", gifter: "", message: "", color: "pink" },
   { id: "amb-3", gifter: "", message: "", color: "purple" },
   { id: "amb-4", gifter: "", message: "", color: "orange" },
+  { id: "amb-5", gifter: "", message: "", color: "white" },
 ];
 
 const BACKGROUNDS = [
-  { key: "mountain", label: "Mountain" },
-  { key: "tropical", label: "Tropical" },
-  { key: "lake", label: "Lake" },
+  { key: "mountain", label: "Mountain", icon: iconMountain },
+  { key: "tropical", label: "Tropical", icon: iconTropical },
+  { key: "lake", label: "Lake", icon: iconLake },
+  { key: "desert", label: "Desert", icon: iconDesert },
+  { key: "japanese garden", label: "Japanese Garden", icon: iconJapanese },
 ];
 
 export default function Creation() {
@@ -103,6 +112,18 @@ export default function Creation() {
     }
     const gardenId = await createGarden();
     console.log(gardenId);
+
+    // Create the free white butterfly with the honoree's name and obit
+    const gardenRef = doc(db, "gardens", gardenId);
+    const honoreeName = `${form.firstName} ${form.lastName}`.trim();
+    await addDoc(collection(db, "butterflies"), {
+      gifter: honoreeName,
+      message: form.message || "",
+      garden: gardenRef,
+      gardenId,
+      color: "white",
+      created: new Date(),
+    });
 
     navigate(`/garden/${gardenId}`);
   };
@@ -201,15 +222,19 @@ export default function Creation() {
                 <div className={`step-panel ${dir === "forward" ? "slide-forward" : "slide-back"}`}>
                   <h2 className="h2">Pick a garden</h2>
                   <p className="sub">Choose a style. You can change it later.</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 12 }}>
                     {BACKGROUNDS.map((t) => (
                       <button
                         key={t.key}
                         className={`theme-tile ${theme.key === t.key ? "active" : ""}`}
                         onClick={() => setTheme({ key: t.key })}
                       >
-                        <div className={`theme-preview theme-${t.key}`} />
-                        <div style={{ marginTop: 8, fontWeight: 700 }}>{t.label}</div>
+                        <img
+                          src={t.icon}
+                          alt={t.label}
+                          style={{ width: 36, height: 36, imageRendering: "pixelated", display: "block", margin: "8px auto 0" }}
+                        />
+                        <div style={{ marginTop: 8, fontWeight: 700, fontSize: "0.85rem" }}>{t.label}</div>
                       </button>
                     ))}
                   </div>

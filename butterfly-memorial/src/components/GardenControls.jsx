@@ -96,7 +96,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         if (c) colorSet.add(c);
       });
 
-      const sorted = Array.from(colorSet).sort((a, b) => a.localeCompare(b));
+      const sorted = Array.from(colorSet).filter((c) => c !== "white").sort((a, b) => a.localeCompare(b));
       const names = sorted.map((n) => n.charAt(0).toUpperCase() + n.slice(1));
       setColors(names);
 

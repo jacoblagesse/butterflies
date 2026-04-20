@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import "./spirit-butterfly.css";
@@ -24,6 +25,8 @@ const BUTTERFLY_CONFIG = {
   5: { size: 52, offsets: [{ x: 0, y: -18 }, { x: 17, y: -6 }, { x: 11, y: 15 }, { x: -11, y: 15 }, { x: -17, y: -6 }] },
 };
 
+const SECTIONS = ["hero", "about", "pricing"];
+
 const snapSection = {
   height: "100vh",
   scrollSnapAlign: "start",
@@ -33,9 +36,36 @@ const snapSection = {
   alignItems: "center",
   position: "relative",
   zIndex: 1,
-  padding: "0 24px",
+  padding: "0 24px 80px",
   boxSizing: "border-box",
   width: "100%",
+};
+
+const navBtnStyle = {
+  position: "fixed",
+  left: "50%",
+  transform: "translateX(-50%)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "6px",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: "8px 20px",
+  whiteSpace: "nowrap",
+  zIndex: 20,
+  transition: "opacity 0.3s ease",
+};
+
+const navLabelStyle = {
+  fontSize: "15px",
+  color: "#fff",
+  letterSpacing: "0.15em",
+  textTransform: "uppercase",
+  fontWeight: 800,
+  fontFamily: "'Inter', sans-serif",
+  textShadow: "0 1px 6px rgba(0,0,0,0.8)",
 };
 
 export default function Landing() {
@@ -43,8 +73,25 @@ export default function Landing() {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [activeSection, setActiveSection] = useState("hero");
   const debounceRef = useRef(null);
 
+  // Track which section is in view
+  useEffect(() => {
+    const observers = SECTIONS.map((id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
+        { threshold: 0.5 }
+      );
+      observer.observe(el);
+      return observer;
+    });
+    return () => observers.forEach((o) => o?.disconnect());
+  }, []);
+
+  // Search logic
   useEffect(() => {
     if (!searchQuery.trim()) {
       setResults([]);
@@ -102,21 +149,57 @@ export default function Landing() {
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const nextIdx = SECTIONS.indexOf(activeSection) + 1;
+  const nextSection = nextIdx < SECTIONS.length ? SECTIONS[nextIdx] : null;
+  const showBackToTop = activeSection !== "hero";
+  const showLearnMore = nextSection !== null;
+
   return (
     <PageLayout snap>
 
+      {/* ── Fixed nav buttons — portaled to body to escape stacking contexts ── */}
+      {createPortal(
+        <>
+          {showBackToTop && (
+            <button
+              onClick={() => scrollTo("hero")}
+              style={{ ...navBtnStyle, top: "16px", animation: "bob 2s ease-in-out infinite" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              <span style={navLabelStyle}>Back to Top</span>
+            </button>
+          )}
+          {showLearnMore && (
+            <button
+              onClick={() => scrollTo(nextSection)}
+              style={{ ...navBtnStyle, bottom: "28px", animation: "bob 2s ease-in-out infinite" }}
+            >
+              <span style={navLabelStyle}>Learn More</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
+        </>,
+        document.body
+      )}
+
       {/* ── Hero ── */}
-      <section style={{ ...snapSection, height: "calc(100vh - 80px)", gap: "0" }}>
-        {/* Grand title */}
-        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+      <section id="hero" style={{ ...snapSection, height: "calc(100vh - 80px)", gap: "0" }}>
+        {/* Logo — pinned high in the sky */}
+        <div style={{ position: "absolute", top: "clamp(16px, 4vh, 48px)", left: 0, right: 0, textAlign: "center", padding: "0 24px" }}>
           <img
             src={logoSvg}
             alt="Butterfly Tribute"
             style={{
-              width: "clamp(280px, 60vw, 600px)",
+              width: "clamp(240px, 70vw, 600px)",
+              minWidth: "200px",
               height: "auto",
               display: "block",
-              margin: "0 auto 16px",
+              margin: "0 auto 12px",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.7)) drop-shadow(0 4px 32px rgba(18,12,28,0.6))",
             }}
           />
@@ -125,12 +208,12 @@ export default function Landing() {
             fontStyle: "italic",
             fontWeight: 700,
             fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
-            color: "rgba(255,255,255,0.82)",
+            color: "#fff",
             margin: 0,
             letterSpacing: "0.01em",
-            textShadow: "0 1px 4px rgba(0,0,0,0.8), 0 2px 16px rgba(18,12,28,0.6)",
+            textShadow: "0 1px 6px rgba(0,0,0,0.9), 0 2px 20px rgba(0,0,0,0.8)",
           }}>
-            A place to honor those we hold in our hearts
+            A virtual butterfly released, a loved one remembered
           </p>
         </div>
 
@@ -143,6 +226,7 @@ export default function Landing() {
             padding: "24px 28px",
             position: "relative",
             zIndex: 10,
+            marginTop: "clamp(40px, 10vh, 100px)",
             marginBottom: "20px",
           }}
         >
@@ -162,7 +246,7 @@ export default function Landing() {
             <input
               className="in"
               type="text"
-              placeholder="Search by name of loved one..."
+              placeholder="Search for a Tribute Garden by name of loved one..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -255,25 +339,6 @@ export default function Landing() {
         >
           Create a Garden
         </Link>
-
-        {/* Scroll hint */}
-        <div style={{
-          position: "absolute",
-          bottom: "32px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "6px",
-          opacity: 0.5,
-          animation: "bob 2s ease-in-out infinite",
-        }}>
-          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", letterSpacing: "0.08em", textTransform: "uppercase" }}>scroll</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
       </section>
 
       {/* ── About ── */}
@@ -313,8 +378,10 @@ export default function Landing() {
             lineHeight: 1.75,
             maxWidth: "520px",
           }}>
-            As a gift to those grieving, we offer a free garden memorial and a butterfly. Once the garden is created,
-            you can share it with friends and family, who can release their own butterflies as a show of love and support.
+            <strong style={{ color: "var(--ink)" }}>As a gift to those grieving, we offer a free garden memorial and a white butterfly.</strong>{" "}
+            This special butterfly carries the name of your loved one — hover over it to read their story.
+            Share the garden with friends and family, who can release their own colorful butterflies
+            as a show of love and support.
             This beautiful garden can be revisited anytime as a place where memories can continue to bloom.
           </p>
           <Link to="/create" className="btn primary" style={{ minWidth: "200px" }}>
@@ -408,16 +475,6 @@ export default function Landing() {
             </div>
           ))}
         </div>
-
-        <p style={{
-          position: "absolute",
-          bottom: "24px",
-          color: "rgba(255,255,255,0.45)",
-          fontSize: "13px",
-          margin: 0,
-        }}>
-          &copy; {new Date().getFullYear()} Butterfly Memorial
-        </p>
       </section>
 
     </PageLayout>
@@ -429,6 +486,8 @@ function getThemeGradient(style) {
     case "mountain": return "linear-gradient(135deg, #b8d5c4, #7a9e8a)";
     case "tropical": return "linear-gradient(135deg, #f0d98c, #8ecb9a)";
     case "lake": return "linear-gradient(135deg, #95c4e8, #5a9ac7)";
+    case "desert": return "linear-gradient(135deg, #e8c87a, #c4956a)";
+    case "japanese garden": return "linear-gradient(135deg, #d4a5b0, #8fb89a)";
     default: return "linear-gradient(135deg, rgba(212,169,199,0.3), rgba(155,142,196,0.2))";
   }
 }

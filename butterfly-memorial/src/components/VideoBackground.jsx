@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 
 // Lazy-loaded background loaders - only loads when requested
 const BACKGROUND_LOADERS = {
-  flowers: () => import("../assets/backgrounds/background__homepage.png"),
+  flowers: () => import("../assets/backgrounds/daisies.png"),
   mountain: () => import("../assets/backgrounds/background_mountain__HD.mp4"),
   tropical: () => import("../assets/backgrounds/background_tropical__HD.mp4"),
   lake: () => import("../assets/backgrounds/background_lake__HD.mp4"),
+  desert: () => import("../assets/backgrounds/background_desert__HD.mp4"),
+  "japanese garden": () => import("../assets/backgrounds/background_japanese garden__HD.mp4"),
 };
 
 export default function VideoBackground({ backgroundKey, className = "", style = {} }) {

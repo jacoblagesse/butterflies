@@ -6,7 +6,7 @@ import AuthPopup from '../components/AuthPopup';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import './spirit-butterfly.css';
-import FlowersBackground from '../assets/backgrounds/background__homepage.png';
+import FlowersBackground from '../assets/backgrounds/daisies.png';
 
 export default function Profile() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();

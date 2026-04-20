@@ -13,6 +13,7 @@ const AMBIENT_BUTTERFLIES = [
   { id: "amb-4", gifter: "", message: "", color: "orange" },
   { id: "amb-5", gifter: "", message: "", color: "green" },
   { id: "amb-6", gifter: "", message: "", color: "yellow" },
+  { id: "amb-7", gifter: "", message: "", color: "white" },
 ];
 
 export default function PageLayout({ children, centered = false, snap = false }) {
@@ -69,7 +70,7 @@ export default function PageLayout({ children, centered = false, snap = false })
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(18, 12, 28, 0.38)",
+          background: "rgba(18, 12, 28, 0.18)",
           zIndex: 0,
           pointerEvents: "none",
         }} />

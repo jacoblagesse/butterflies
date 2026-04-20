@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPassword } from '../firebase';
 import './AuthPopup.css';
 
-import FlowersBackground from '../assets/backgrounds/background__homepage.png';
+import FlowersBackground from '../assets/backgrounds/daisies.png';
 import LogoUrl from '../assets/logos/logo.svg';
 
 const AuthPopup = ({ isOpen, onClose }) => {
