@@ -8,6 +8,7 @@ import GardenControls from "../components/GardenControls";
 import FlyingButterfly from "../components/FlyingButterfly";
 import VideoBackground from "../components/VideoBackground";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
+import { useAuth } from "../contexts/AuthContext";
 
 import "./spirit-butterfly.css";
 
@@ -16,6 +17,7 @@ import LogoUrl from "../assets/logos/logo.svg";
 export default function Garden() {
   const { gardenId } = useParams();
   const stageRef = useRef(null);
+  const { user } = useAuth();
 
   const [garden, setGarden] = useState(null);
   const [honoree, setHonoree] = useState(null);
@@ -28,7 +30,11 @@ export default function Garden() {
   const [hoverCard, setHoverCard] = useState({ visible: false, name: "", message: "", x: 0, y: 0, tailSide: "left", isHonoree: false });
   const frozenRef = useRef(new Set()); // ids of butterflies frozen on hover
 
-  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef);
+  // Cap the visible scene at 8 butterflies. Pinned ones (white spirit +
+  // current viewer's purchases) always count toward the cap; excess
+  // unpinned butterflies wait in a pool and rotate in when an active one
+  // leaves the screen.
+  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef, 8);
 
   useEffect(() => {
     if (!gardenId) return;
@@ -61,9 +67,22 @@ export default function Garden() {
 
     const q = query(collection(db, "butterflies"), where("gardenId", "==", gardenId));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const currentUid = user?.uid || null;
       const butterflyList = [];
       querySnapshot.forEach((doc) => {
-        butterflyList.push({ id: doc.id, ...doc.data() });
+        const data = doc.data();
+        // Pin the white spirit butterfly (always present in a garden) and
+        // any butterfly purchased by the CURRENT viewer so they don't have
+        // to wonder where their own butterflies are. Other visitors'
+        // butterflies behave like the ambient ones — they may drift off
+        // and back over time.
+        const isMine = currentUid && data.uid === currentUid;
+        const isSpirit = data.color === "white";
+        butterflyList.push({
+          id: doc.id,
+          ...data,
+          pinned: isMine || isSpirit,
+        });
       });
       setButterflies(butterflyList);
     });
@@ -71,7 +90,7 @@ export default function Garden() {
     fetchData();
 
     return unsubscribe;
-  }, [gardenId]);
+  }, [gardenId, user?.uid]);
 
 
   if (loading) {

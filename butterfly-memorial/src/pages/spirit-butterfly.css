@@ -13,8 +13,8 @@
   --muted:#6b6578;           /* gentle plum-grey */
   --accent:#9b8ec4;          /* soft lavender */
   --accent-2:#d4a9c7;        /* dusty rose */
-  --cta:#7d6b91;             /* muted amethyst */
-  --cta-hover:#6a5a7d;
+  --cta:#ee60a2;             /* logo heart pink */
+  --cta-hover:#d44b8e;       /* darker pink for hover */
   --cta-ink:#ffffff;
   --card:rgba(255,255,253,0.82);  /* warm ivory glass */
   --card-solid:#fffdf9;
@@ -660,4 +660,279 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   color: var(--muted);
   font-size: var(--fs-small);
   font-weight: 500;
+}
+
+/* =========================================================
+   Snap-page scroller (used by landing page)
+   --------------------------------------------------------
+   `mandatory` locks each section into place so two sections
+   are never visible at once. `scroll-padding-top: 80px`
+   accounts for the sticky header — sections snap to the
+   visible area below it. `scroll-behavior: smooth` makes
+   programmatic scrolls (Back to Top / Learn More) glide.
+   ========================================================= */
+.page-snap {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 80px;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+
+/* =========================================================
+   Landing Page
+   --------------------------------------------------------
+   Sections use min-height so content can grow on short
+   viewports instead of overflowing. The hero uses flow
+   layout (no absolute positioning) so the logo and the
+   search card never collide.
+   ========================================================= */
+
+.landing-section {
+  /* Each section fills exactly the viewport area BELOW the sticky
+     header (~80px). With mandatory snap + scroll-padding-top: 80px,
+     this means a snapped section occupies the full visible area
+     and no neighbor leaks in. */
+  min-height: calc(100vh - 80px);
+  min-height: calc(100dvh - 80px);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: clamp(24px, 4vh, 48px) clamp(16px, 4vw, 32px) clamp(64px, 10vh, 96px);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Hero ----------------------------------------------------- */
+.landing-hero {
+  /* hero needs space-between layout (header pinned top, main centered)
+     so override the base section's centered alignment */
+  justify-content: flex-start;
+  gap: clamp(20px, 4vh, 40px);
+}
+
+.landing-hero-header {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 1.5vh, 14px);
+  flex-shrink: 0;
+}
+
+.landing-hero-logo {
+  /* floor (260px) keeps the logo legible on the narrowest phones;
+     ceiling (600px) prevents over-scaling on huge displays */
+  width: clamp(260px, 70vw, 600px);
+  height: auto;
+  display: block;
+  filter:
+    drop-shadow(0 2px 12px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 4px 32px rgba(18, 12, 28, 0.6));
+}
+
+.landing-hero-tagline {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.01em;
+  max-width: 600px;
+  text-shadow:
+    0 1px 6px rgba(0, 0, 0, 0.9),
+    0 2px 20px rgba(0, 0, 0, 0.8);
+}
+
+.landing-hero-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 2.5vh, 24px);
+  width: 100%;
+  max-width: 600px;
+}
+
+.landing-search-card {
+  width: 100%;
+  padding: clamp(18px, 3vw, 24px) clamp(18px, 3vw, 28px);
+  position: relative;
+  z-index: 10;
+}
+
+.landing-search-wrap { position: relative; }
+
+.landing-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.landing-search-input {
+  padding: 16px 18px 16px 48px;
+  font-size: 16px; /* keep ≥16px to suppress iOS zoom on focus */
+  border-radius: var(--r-sm);
+  box-shadow: 0 2px 10px var(--ring);
+}
+
+.landing-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--card-solid);
+  border-radius: var(--r-sm);
+  box-shadow: 0 8px 32px rgba(44, 40, 54, 0.12);
+  overflow: hidden;
+  z-index: 50;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+}
+
+.landing-search-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+.landing-search-result:last-child { border-bottom: none; }
+.landing-search-result:hover { background: rgba(155, 142, 196, 0.06); }
+
+.landing-search-result-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.landing-search-result-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.landing-search-result-dates {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.landing-search-empty {
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.landing-cta {
+  text-align: center;
+  min-width: min(200px, 100%);
+  font-size: 0.95rem;
+  padding: 12px 28px;
+  z-index: 1;
+  position: relative;
+}
+
+/* About ---------------------------------------------------- */
+.landing-about-card {
+  max-width: 620px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(28px, 6vw, 48px) clamp(20px, 5vw, 40px);
+  text-align: center;
+}
+
+.landing-about-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  font-weight: 700;
+  margin: 0 0 1.2rem;
+  color: var(--ink);
+}
+
+.landing-about-text {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: clamp(0.9rem, 2.2vw, 0.95rem);
+  line-height: 1.7;
+  max-width: 520px;
+}
+.landing-about-text:last-of-type { margin-bottom: 2rem; }
+.landing-about-text strong { color: var(--ink); }
+
+/* Floating section nav (Back to Top / Learn More) ---------- */
+.landing-nav-btn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 20;
+  transition: opacity 0.3s ease;
+  animation: bob 2s ease-in-out infinite;
+}
+.landing-nav-btn--top    { top: 16px; }
+.landing-nav-btn--bottom { bottom: 28px; }
+
+.landing-nav-btn-label {
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* --- Mobile / short viewport: drop snap, let content flow - */
+@media (max-width: 640px), (max-height: 720px) {
+  .page-snap {
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-type: none;
+  }
+  .landing-section {
+    min-height: auto;
+    scroll-snap-align: none;
+    padding-top: clamp(24px, 5vh, 48px);
+    padding-bottom: clamp(40px, 6vh, 64px);
+  }
+  /* hero still feels like a "first screen" — keep it filling the viewport */
+  .landing-hero {
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
+  }
+  /* the floating "Back to Top" / "Learn More" buttons aren't useful
+     once the page scrolls naturally — hide them */
+  .landing-nav-btn { display: none; }
 }

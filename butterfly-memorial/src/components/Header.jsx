@@ -134,7 +134,6 @@ export default function Header({ onSignInClick, variant = 'default' }) {
       <header style={{ justifyContent: 'flex-end' }}>
         <nav>
           <a href="/#about" onClick={(e) => handleSmoothScroll(e, 'about')} style={{ color: 'rgba(255,255,255,0.8)' }}>About</a>
-          <a href="/#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')} style={{ color: 'rgba(255,255,255,0.8)' }}>Pricing</a>
           <UserDropdown onSignInClick={onSignInClick} />
         </nav>
       </header>

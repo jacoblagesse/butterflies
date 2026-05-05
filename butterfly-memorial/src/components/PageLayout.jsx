@@ -21,9 +21,15 @@ export default function PageLayout({ children, centered = false, snap = false })
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
 
+  // Children may be a function so the page body can request the auth popup
+  // be opened (e.g. a "Sign In" button inside the content).
+  const openSignIn = () => setAuthOpen(true);
+  const renderedChildren =
+    typeof children === "function" ? children({ openSignIn }) : children;
+
   return (
     <div
-      className="page"
+      className={`page${snap ? " page-snap" : ""}`}
       style={{
         backgroundImage: `url(${DaisiesBackground})`,
         backgroundSize: "cover",
@@ -31,12 +37,6 @@ export default function PageLayout({ children, centered = false, snap = false })
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
         position: "relative",
-        ...(snap && {
-          height: "100vh",
-          overflowY: "scroll",
-          scrollSnapType: "y proximity",
-          scrollPaddingTop: "80px",
-        }),
       }}
     >
       {/* Ambient butterfly layer */}
@@ -65,20 +65,19 @@ export default function PageLayout({ children, centered = false, snap = false })
         ))}
       </div>
 
-      {/* Dark overlay for readability in snap mode */}
-      {snap && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(18, 12, 28, 0.18)",
-          zIndex: 0,
-          pointerEvents: "none",
-        }} />
-      )}
+      {/* Dark overlay for readability — applied on every page that uses
+          this layout so the daisies background reads consistently. */}
+      <div style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(18, 12, 28, 0.18)",
+        zIndex: 0,
+        pointerEvents: "none",
+      }} />
 
       {/* Header */}
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-      <Header onSignInClick={() => setAuthOpen(true)} />
+      <Header onSignInClick={openSignIn} />
 
       {/* Content area */}
       <div
@@ -98,7 +97,7 @@ export default function PageLayout({ children, centered = false, snap = false })
           }),
         }}
       >
-        {children}
+        {renderedChildren}
       </div>
 
       {!snap && (

@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Header from '../components/Header';
-import AuthPopup from '../components/AuthPopup';
+import PageLayout from '../components/PageLayout';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import './spirit-butterfly.css';
-import FlowersBackground from '../assets/backgrounds/daisies.png';
 
 export default function Profile() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [isAuthOpen, setAuthOpen] = useState(false);
   const [gardens, setGardens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,39 +71,22 @@ export default function Profile() {
     }
   }, [user, authLoading]);
 
-  const bgStyle = {
-    backgroundImage: `url(${FlowersBackground})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-  };
-
-  const headerBlock = (
-    <>
-      <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
-      <Header onSignInClick={() => setAuthOpen(true)} />
-    </>
-  );
-
   if (authLoading) {
     return (
-      <div className="page" style={bgStyle}>
-        {headerBlock}
-        <div className="wrap">
-          <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-            <div className="hero-card" style={{ textAlign: 'center', padding: '40px' }}>
-              <p style={{ color: 'var(--muted)' }}>Loading...</p>
-            </div>
+      <PageLayout>
+        <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
+          <div className="hero-card" style={{ textAlign: 'center', padding: '40px' }}>
+            <p style={{ color: 'var(--muted)' }}>Loading...</p>
           </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="page" style={bgStyle}>
-        {headerBlock}
-        <div className="wrap">
+      <PageLayout>
+        {({ openSignIn }) => (
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
             <div className="hero-card" style={{ textAlign: 'center', padding: '44px 36px', maxWidth: '460px' }}>
               <h2 style={{ marginBottom: '12px', fontSize: 'clamp(1.4rem, 3.5vw, 1.8rem)' }}>
@@ -115,22 +95,23 @@ export default function Profile() {
               <p className="sub" style={{ marginBottom: '24px', fontSize: '0.95rem' }}>
                 Create an account or sign in to see all the gardens you've created.
               </p>
-              <button className="btn primary" onClick={() => setAuthOpen(true)}>
+              <button
+                className="btn primary"
+                onClick={openSignIn}
+                style={{ padding: '10px 22px', fontSize: '0.95rem' }}
+              >
                 Sign In
               </button>
             </div>
           </div>
-        </div>
-      </div>
+        )}
+      </PageLayout>
     );
   }
 
   return (
-    <div className="page" style={bgStyle}>
-      {headerBlock}
-      <div className="wrap">
-
-        <section style={{ flex: 1, paddingTop: '24px' }}>
+    <PageLayout>
+      <section style={{ flex: 1, paddingTop: '24px' }}>
           <div className="hero-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
               <div>
@@ -214,12 +195,7 @@ export default function Profile() {
             )}
           </div>
         </section>
-
-        <footer className="page-footer">
-          &copy; {new Date().getFullYear()} Butterfly Memorial
-        </footer>
-      </div>
-    </div>
+    </PageLayout>
   );
 }
 

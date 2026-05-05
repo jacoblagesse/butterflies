@@ -4,6 +4,7 @@ import { db, createPaymentIntentFn, confirmPaymentFn } from '../firebase';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './CheckoutForm';
+import { useAuth } from '../contexts/AuthContext';
 import hatchGif from '../assets/misc/hatch.gif';
 import ButterflyColorChanger from '../assets/logos/butterfly.png';
 
@@ -31,6 +32,7 @@ async function getGifDurationMs(src) {
 }
 
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [msg, setMsg] = useState('');
@@ -127,6 +129,9 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       garden: gardenRef,
       gardenId,
       color: colorKey, // selected color saved
+      // Stamp the purchaser so the garden view can pin "my butterflies"
+      // on-screen for the current viewer. Null when unauthenticated.
+      uid: user?.uid || null,
       created: new Date(),
     });
     console.log('Butterfly created:', docRef.id);
@@ -224,7 +229,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const stripeAppearance = {
     theme: 'stripe',
     variables: {
-      colorPrimary: '#7d6b91',
+      colorPrimary: '#ee60a2',
       colorBackground: '#ffffff',
       colorText: '#2c2836',
       colorDanger: '#c44040',
