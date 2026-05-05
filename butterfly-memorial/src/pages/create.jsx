@@ -315,42 +315,29 @@ export default function Creation() {
               {step === 3 && (
                 <div className={`step-panel ${dir === "forward" ? "slide-forward" : "slide-back"}`}>
                   <h2 className="h2">Preview</h2>
-                  <div className={`right theme-${theme.key}`} style={{ minHeight: 200 }} aria-hidden="true">
-                    <div className="garden">
-                      <div className="hill" />
-                      <div id="preview-butterflies" ref={prevRef} />
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 16,
-                          left: 16,
-                          right: 16,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                        }}
-                      >
-                        <div>
-                          <div className="h3" style={{ margin: 0 }}>
-                            {form.firstName || "First"} {form.lastName || "Last"}
-                          </div>
-                          <div className="sub">{form.dates || "—"}</div>
-                        </div>
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                      padding: 14,
+                      borderRadius: "var(--r-md)",
+                      background: "var(--card-solid)",
+                      border: "1px solid var(--border)",
+                      boxShadow: "0 6px 20px var(--ring)",
+                    }}
+                  >
+                    <div>
+                      <div className="h3" style={{ margin: 0 }}>
+                        {form.firstName || "First"} {form.lastName || "Last"}
                       </div>
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: 16,
-                          right: 16,
-                          bottom: 16,
-                          background: "#ffffffcc",
-                          borderRadius: 12,
-                          padding: 12,
-                        }}
-                      >
-                        <div className="sub">{form.message || "A few words about your loved one…"}</div>
-                      </div>
+                      <div className="sub">{form.dates || "—"}</div>
                     </div>
+                    <div className="sub" style={{ whiteSpace: "pre-wrap", margin: 0, textAlign: "left" }}>
+                      {form.message || "A few words about your loved one…"}
+                    </div>
+                    <div ref={prevRef} id="preview-butterflies" style={{ display: "none" }} />
                   </div>
                   <div className="cta-row" style={{ justifyContent: "space-between" }}>
                     <button className="btn ghost" onClick={back}>
