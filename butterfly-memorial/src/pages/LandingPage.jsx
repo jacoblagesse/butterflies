@@ -5,6 +5,7 @@ import PageLayout from "../components/PageLayout";
 import "./spirit-butterfly.css";
 import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
 import whiteButterfly from "../assets/butterflies/white/flying.gif";
+import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -18,6 +19,8 @@ export default function Landing() {
   const [hasSearched, setHasSearched] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const debounceRef = useRef(null);
+
+  useBackgroundAudio();
 
   // Track which section is in view
   useEffect(() => {

@@ -8,6 +8,7 @@ import GardenControls from "../components/GardenControls";
 import FlyingButterfly from "../components/FlyingButterfly";
 import VideoBackground from "../components/VideoBackground";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
+import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 import { useAuth } from "../contexts/AuthContext";
 
 import "./spirit-butterfly.css";
@@ -18,6 +19,8 @@ export default function Garden() {
   const { gardenId } = useParams();
   const stageRef = useRef(null);
   const { user } = useAuth();
+
+  useBackgroundAudio();
 
   const [garden, setGarden] = useState(null);
   const [honoree, setHonoree] = useState(null);
