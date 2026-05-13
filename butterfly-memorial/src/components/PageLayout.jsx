@@ -65,16 +65,6 @@ export default function PageLayout({ children, centered = false, snap = false })
         ))}
       </div>
 
-      {/* Dark overlay for readability — applied on every page that uses
-          this layout so the daisies background reads consistently. */}
-      <div style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(18, 12, 28, 0.18)",
-        zIndex: 0,
-        pointerEvents: "none",
-      }} />
-
       {/* Header */}
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <Header onSignInClick={openSignIn} />

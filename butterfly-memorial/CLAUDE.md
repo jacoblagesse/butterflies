@@ -140,7 +140,7 @@ border-radius: var(--r-lg);
 
 ### `payments`
 ```js
-{ uid, gardenId, color, gifter, message, amount: 99, currency: "usd", status: "pending"|"succeeded", createdAt, confirmedAt }
+{ uid, gardenId, color, gifter, message, amount: 199, currency: "usd", status: "pending"|"succeeded", createdAt, confirmedAt }
 ```
 
 ---
@@ -148,7 +148,7 @@ border-radius: var(--r-lg);
 ## Payment Flow
 
 1. **Client** calls `createPaymentIntentFn({ gardenId, color, gifter, message })`
-2. **Cloud Function** creates Stripe PaymentIntent ($0.99), writes pending record to Firestore, returns `clientSecret`
+2. **Cloud Function** creates Stripe PaymentIntent ($1.99), writes pending record to Firestore, returns `clientSecret`
 3. **Client** renders Stripe `PaymentElement` inside `<Elements>` with the `clientSecret`
 4. **User** submits card → Stripe confirms payment client-side
 5. **Client** calls `confirmPaymentFn({ paymentIntentId })`

@@ -58,7 +58,7 @@ export default function CheckoutForm({ onSuccess, onBack, loading: externalLoadi
           className="btn primary"
           disabled={isDisabled}
         >
-          {processing ? 'Processing...' : 'Pay $0.99 & Release'}
+          {processing ? 'Processing...' : 'Pay $1.99 & Release'}
         </button>
       </div>
     </form>

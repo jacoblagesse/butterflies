@@ -1,6 +1,6 @@
 # Butterfly Memorial
 
-A memorial garden web app where visitors release butterflies carrying messages for loved ones. Each butterfly is purchased for $0.99 via Stripe and flies in a shared, physics-driven garden.
+A memorial garden web app where visitors release butterflies carrying messages for loved ones. Each butterfly is purchased for $1.99 via Stripe and flies in a shared, physics-driven garden.
 
 ## Prerequisites
 

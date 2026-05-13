@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Gardens are publicly viewable (search + share-by-link).
+    // Only an authenticated user can create a garden, and only with
+    // `user` pointing at their own /users/{uid} reference.
+    // Only the owner can update or delete.
+    match /gardens/{gardenId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.user
+                       == /databases/$(database)/documents/users/$(request.auth.uid);
+      allow update, delete: if request.auth != null
+                            && resource.data.user
+                               == /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    // Honoree records are publicly readable (rendered in the garden view
+    // and used by landing-page search). Honoree has no owner field today,
+    // so client updates/deletes are denied; create requires auth.
+    match /honoree/{honoreeId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    // Butterflies are publicly readable. Authenticated users may create
+    // (the initial free white butterfly + paid butterflies after a
+    // confirmed Stripe payment). No client-side updates or deletes.
+    // Future hardening: move paid-butterfly creation entirely into the
+    // Cloud Function so writes can be gated on a verified payment.
+    match /butterflies/{butterflyId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    // Payments are written only by the Cloud Function (firebase-admin
+    // bypasses rules). Clients have no access.
+    match /payments/{paymentId} {
+      allow read, write: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

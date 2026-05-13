@@ -43,7 +43,7 @@ export default function Creation() {
   const [isAuthOpen, setAuthOpen] = useState(false);
 
   const [theme, setTheme] = useState({ key: "mountain" });
-  const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "", obitUrl: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", dates: "", message: "" });
   const [currentHonoree, setCurrentHonoree] = useState("");
 
   const prevRef = useRef(null);
@@ -134,7 +134,6 @@ export default function Creation() {
       last_name: form.lastName,
       dates: form.dates,
       obit: form.message,
-      obituary_url: form.obitUrl,
       created: new Date(),
     });
     console.log("Garden created:", docRef.id);
@@ -292,12 +291,6 @@ export default function Creation() {
                       placeholder="Short dedication"
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    />
-                    <input
-                      className="in"
-                      placeholder="Obituary URL (optional)"
-                      value={form.obitUrl}
-                      onChange={(e) => setForm({ ...form, obitUrl: e.target.value })}
                     />
                   </div>
                   <div className="cta-row" style={{ justifyContent: "space-between" }}>

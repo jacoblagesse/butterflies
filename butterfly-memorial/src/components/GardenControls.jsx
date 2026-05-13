@@ -36,7 +36,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [msg, setMsg] = useState('');
-  const [qty, setQty] = useState('1');
 
   // 3-step wizard state
   const [wizardStep, setWizardStep] = useState(1); // 1 | 2 | 3
@@ -270,7 +269,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                   setHatchFading(false);
                   setName('');
                   setMsg('');
-                  setQty('1');
                   setSelectedColor(null);
                 }, 350);
               }, duration);
@@ -420,7 +418,9 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
           {wizardStep === 1 && (
             <div className={`step-panel ${wizardDir === 'forward' ? 'slide-forward' : 'slide-back'}`}>
               <h2 style={{ fontSize: 'clamp(22px, 4vw, 32px)', margin: '12px 0 6px' }}>Choose a butterfly</h2>
-              <p className="sub" style={{ margin: '0 0 16px' }}>Select a butterfly to release in the garden</p>
+              <p className="sub" style={{ margin: '0 0 16px' }}>
+                Select a butterfly to release in the garden — <strong>$1.99 each</strong>
+              </p>
 
               <div className="buy-wizard-grid">
                 {colors.map((label) => {
@@ -543,7 +543,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                   <div className="summary-name">{selectedColor} for {name}</div>
                   <div className="summary-msg">"{msg}"</div>
                 </div>
-                <div className="summary-price">$0.99</div>
+                <div className="summary-price">$1.99</div>
               </div>
 
               {paymentError && (

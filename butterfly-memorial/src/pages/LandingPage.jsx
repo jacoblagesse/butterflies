@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import "./spirit-butterfly.css";
 import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
+import whiteButterfly from "../assets/butterflies/white/flying.gif";
 
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -210,6 +211,7 @@ export default function Landing() {
             Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
             Together, we'll honor their spirit with heartfelt tributes in a tranquil space.
           </p>
+          <img src={whiteButterfly} alt="" aria-hidden="true" className="landing-about-divider" />
           <p className="landing-about-text">
             <strong>As a gift to those honoring a loved one, we offer a free garden memorial and a white butterfly.</strong>{" "}
             This special butterfly carries the name of your loved one — hover over it to read their story.

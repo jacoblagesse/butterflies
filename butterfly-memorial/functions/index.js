@@ -40,7 +40,7 @@ exports.createPaymentIntent = onCall(
     const stripe = require("stripe")(getStripeKey());
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 99, // $0.99 in cents
+      amount: 199, // $1.99 in cents
       currency: "usd",
       payment_method_types: ["card"],
       metadata: {
@@ -60,7 +60,7 @@ exports.createPaymentIntent = onCall(
         color: color || null,
         gifter,
         message,
-        amount: 99,
+        amount: 199,
         currency: "usd",
         status: "pending",
         createdAt: new Date(),

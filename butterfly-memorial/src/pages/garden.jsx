@@ -217,6 +217,18 @@ export default function Garden() {
 
             {/* Top-left honoree info */}
             {honoree && (
+              <>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 19,
+                    pointerEvents: "none",
+                    background:
+                      "radial-gradient(circle 620px at top left, rgba(18,12,28,0.55) 0%, rgba(18,12,28,0.28) 40%, transparent 100%)",
+                  }}
+                />
               <div
                 style={{
                   position: "fixed",
@@ -265,6 +277,7 @@ export default function Garden() {
                   </div>
                 )}
               </div>
+              </>
             )}
 
             <GardenControls butterflies={butterflies} gardenId={gardenId} />
