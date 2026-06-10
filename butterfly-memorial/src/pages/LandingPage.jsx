@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
+import VolumeButton from "../components/VolumeButton";
 import "./spirit-butterfly.css";
 import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
 import whiteButterfly from "../assets/butterflies/white/flying.gif";
@@ -20,7 +21,7 @@ export default function Landing() {
   const [activeSection, setActiveSection] = useState("hero");
   const debounceRef = useRef(null);
 
-  useBackgroundAudio();
+  const { muted, toggleMute } = useBackgroundAudio();
 
   // Track which section is in view
   useEffect(() => {
@@ -103,6 +104,7 @@ export default function Landing() {
 
   return (
     <PageLayout snap>
+      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100 }} />
 
       {/* ── Fixed nav buttons — portaled to body to escape stacking contexts ── */}
       {createPortal(
@@ -140,7 +142,7 @@ export default function Landing() {
         <div className="landing-hero-header">
           <img src={logoSvg} alt="Butterfly Tribute" className="landing-hero-logo" />
           <p className="landing-hero-tagline">
-            A virtual butterfly released, a loved one remembered
+            Honor a loved one by releasing a butterfly in a virtual garden
           </p>
         </div>
 
@@ -158,7 +160,7 @@ export default function Landing() {
               <input
                 className="in landing-search-input"
                 type="text"
-                placeholder="Search for a Tribute Garden by name of loved one..."
+                placeholder="Search for an existing Tribute Garden by name of loved one"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -210,14 +212,14 @@ export default function Landing() {
       <section id="about" className="landing-section">
         <div className="hero-card landing-about-card">
           <h2 className="landing-about-title">Welcome to ButterflyTribute.com</h2>
-          <p className="landing-about-text">
+          <p className="landing-about-text" style={{ marginBottom: 0 }}>
             Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
-            Together, we'll honor their spirit with heartfelt tributes in a tranquil space.
+            Together, we'll honor their spirit with heartfelt tributes in a tranquil space.{" "}
+            <Link to="/garden/demo" className="landing-example-link">See an example garden here.</Link>
           </p>
           <img src={whiteButterfly} alt="" aria-hidden="true" className="landing-about-divider" />
           <p className="landing-about-text">
             <strong>As a gift to those honoring a loved one, we offer a free garden memorial and a white butterfly.</strong>{" "}
-            This special butterfly carries the name of your loved one — hover over it to read their story.
             Share the garden with friends and family, who can release their own colorful butterflies
             as a show of love and support.
             This beautiful garden can be revisited anytime as a place where memories can continue to bloom.
@@ -225,6 +227,11 @@ export default function Landing() {
           <Link to="/create" className="btn primary" style={{ minWidth: "170px", padding: "10px 22px", fontSize: "0.95rem" }}>
             Create your first Garden
           </Link>
+
+          <p style={{ marginTop: '2rem', marginBottom: 0, fontSize: '12px', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.6 }}>
+            © 2026 ButterflyTribute.com. All rights reserved.<br />
+            Web development by LaVidaCo Communications
+          </p>
         </div>
       </section>
 

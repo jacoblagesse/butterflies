@@ -20,7 +20,7 @@ export default function Garden() {
   const stageRef = useRef(null);
   const { user } = useAuth();
 
-  useBackgroundAudio();
+  const { muted, toggleMute } = useBackgroundAudio();
 
   const [garden, setGarden] = useState(null);
   const [honoree, setHonoree] = useState(null);
@@ -88,6 +88,8 @@ export default function Garden() {
         });
       });
       setButterflies(butterflyList);
+    }, (err) => {
+      console.error("Butterflies listener error:", err.message);
     });
 
     fetchData();
@@ -283,7 +285,7 @@ export default function Garden() {
               </>
             )}
 
-            <GardenControls butterflies={butterflies} gardenId={gardenId} />
+            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} />
           </div>
         </main>
       </div>

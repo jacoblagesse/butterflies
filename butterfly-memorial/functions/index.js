@@ -23,12 +23,7 @@ const fnConfig = isEmulator ? {} : { secrets: [stripeSecretKey] };
 exports.createPaymentIntent = onCall(
   fnConfig,
   async (request) => {
-    // Require authentication
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "You must be signed in.");
-    }
-
-    const { gardenId, color, gifter, message } = request.data;
+    const { gardenId, color, gifter, email, message } = request.data;
 
     if (!gardenId || !gifter || !message) {
       throw new HttpsError(
@@ -37,28 +32,32 @@ exports.createPaymentIntent = onCall(
       );
     }
 
+    const uid = request.auth?.uid || null;
     const stripe = require("stripe")(getStripeKey());
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 199, // $1.99 in cents
       currency: "usd",
       payment_method_types: ["card"],
+      receipt_email: email || undefined,
       metadata: {
         gardenId,
         color: color || "",
         gifter,
+        email: email || "",
         message,
-        uid: request.auth.uid,
+        uid: uid || "",
       },
     });
 
     // Write pending payment record to Firestore (non-critical in emulator)
     try {
       await db.collection("payments").doc(paymentIntent.id).set({
-        uid: request.auth.uid,
+        uid,
         gardenId,
         color: color || null,
         gifter,
+        email: email || null,
         message,
         amount: 199,
         currency: "usd",
@@ -76,10 +75,6 @@ exports.createPaymentIntent = onCall(
 exports.confirmPayment = onCall(
   fnConfig,
   async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "You must be signed in.");
-    }
-
     const { paymentIntentId } = request.data;
 
     if (!paymentIntentId) {
@@ -100,11 +95,6 @@ exports.confirmPayment = onCall(
       );
     }
 
-    // Verify the payment belongs to this user
-    if (paymentIntent.metadata.uid !== request.auth.uid) {
-      throw new HttpsError("permission-denied", "Payment does not belong to you.");
-    }
-
     // Update payment record in Firestore (non-critical in emulator)
     try {
       await db.collection("payments").doc(paymentIntentId).update({
@@ -115,12 +105,34 @@ exports.confirmPayment = onCall(
       console.warn("Firestore update failed (ok in emulator):", err.message);
     }
 
+    const meta = paymentIntent.metadata;
+
+    // Create the butterfly document server-side so no client auth is needed
+    let butterflyId = null;
+    try {
+      const gardenRef = db.doc(`gardens/${meta.gardenId}`);
+      const butterflyRef = await db.collection("butterflies").add({
+        gifter: meta.gifter,
+        email: meta.email || null,
+        message: meta.message,
+        garden: gardenRef,
+        gardenId: meta.gardenId,
+        color: meta.color || null,
+        uid: meta.uid || null,
+        created: new Date(),
+      });
+      butterflyId = butterflyRef.id;
+    } catch (err) {
+      console.warn("Butterfly creation failed:", err.message);
+    }
+
     return {
       verified: true,
-      gardenId: paymentIntent.metadata.gardenId,
-      color: paymentIntent.metadata.color,
-      gifter: paymentIntent.metadata.gifter,
-      message: paymentIntent.metadata.message,
+      butterflyId,
+      gardenId: meta.gardenId,
+      color: meta.color,
+      gifter: meta.gifter,
+      message: meta.message,
     };
   }
 );

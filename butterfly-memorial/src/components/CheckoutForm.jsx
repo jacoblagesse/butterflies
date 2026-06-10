@@ -40,6 +40,10 @@ export default function CheckoutForm({ onSuccess, onBack, loading: externalLoadi
     <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
       <PaymentElement options={{ layout: 'tabs' }} />
 
+      <p style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', margin: 0, lineHeight: 1.5 }}>
+        For every butterfly you buy, we send 30% to our partner charities for butterfly conservation.
+      </p>
+
       {error && (
         <div className="buy-error">{error}</div>
       )}

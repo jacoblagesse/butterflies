@@ -112,8 +112,26 @@ export default function Profile() {
   return (
     <PageLayout>
       <section style={{ flex: 1, paddingTop: '24px' }}>
-          <div className="hero-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="hero-card" style={{ maxWidth: '700px', margin: '0 auto', position: 'relative' }}>
+            <button
+              onClick={() => navigate(-1)}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--muted)',
+                fontSize: '22px',
+                lineHeight: 1,
+                padding: '4px',
+              }}
+            >
+              ×
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap', paddingRight: '32px' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 'clamp(1.3rem, 3.5vw, 1.7rem)' }}>My Gardens</h2>
                 <p className="sub" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>{user?.email}</p>

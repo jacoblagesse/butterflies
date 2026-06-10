@@ -55,8 +55,8 @@ export const functions = getFunctions(app);
 export const createPaymentIntentFn = httpsCallable(functions, 'createPaymentIntent');
 export const confirmPaymentFn = httpsCallable(functions, 'confirmPayment');
 
-// Connect to emulator in development
-if (import.meta.env.DEV) {
+// Connect to emulator only when explicitly opted in
+if (import.meta.env.VITE_USE_EMULATOR === "true") {
   const emulatorHost = import.meta.env.VITE_EMULATOR_HOST || "127.0.0.1";
   connectFunctionsEmulator(functions, emulatorHost, 5001);
 }

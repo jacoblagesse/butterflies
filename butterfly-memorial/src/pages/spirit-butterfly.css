@@ -193,7 +193,28 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* ===== Garden full-viewport stage ===== */
 .garden-stage { position: fixed; inset: 0; border-radius: 0; }
 
-.garden-controls { position: absolute; right: 24px; bottom: 25px; display: grid; gap: 10px; z-index: 21; }
+.garden-controls { position: absolute; right: 24px; bottom: 25px; display: grid; gap: 10px; z-index: 21; align-items: end; }
+
+.volume-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  transition: background 200ms ease, transform 120ms ease;
+  padding: 0;
+  align-self: end;
+  justify-self: end;
+}
+.volume-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+}
 @media (max-width: 640px) {
   .garden-controls { top: auto; bottom: 24px; right: 24px; }
 }
@@ -375,7 +396,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* Step 1 — butterfly grid */
 .buy-wizard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 4px;
 }
@@ -614,14 +635,15 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   font-family: 'Playfair Display', serif;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
-  color: #fff;
+  font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+  color: #ec4097;
   margin: 0;
   letter-spacing: 0.01em;
   max-width: 600px;
   text-shadow:
-    0 2px 12px rgba(0, 130, 150, 0.4),
-    0 4px 16px rgba(18, 12, 28, 0.6);
+    0 0 18px rgba(255, 255, 255, 0.75),
+    0 2px 12px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(18, 12, 28, 0.4);
 }
 
 .landing-hero-main {
@@ -755,13 +777,20 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 .landing-about-text strong { color: var(--ink); }
 
 .landing-about-divider {
-  width: 56px;
+  width: 150px;
   height: auto;
   display: block;
-  margin: 0.5rem auto 1.2rem;
+  margin: 0 auto;
   pointer-events: none;
   user-select: none;
 }
+
+.landing-example-link {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+}
+.landing-example-link:hover { color: var(--cta); }
 
 /* Floating section nav (Back to Top / Learn More) ---------- */
 .landing-nav-btn {

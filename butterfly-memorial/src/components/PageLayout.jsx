@@ -92,7 +92,7 @@ export default function PageLayout({ children, centered = false, snap = false })
 
       {!snap && (
         <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
-          &copy; {new Date().getFullYear()} Butterfly Memorial
+          &copy; 2026 ButterflyTribute.com. All rights reserved. Web development by LaVidaCo Communications
         </footer>
       )}
     </div>

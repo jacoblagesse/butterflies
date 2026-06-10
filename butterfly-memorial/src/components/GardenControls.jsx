@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { addDoc, collection, doc } from 'firebase/firestore';
-import { db, createPaymentIntentFn, confirmPaymentFn } from '../firebase';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPaymentIntentFn, confirmPaymentFn } from '../firebase';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './CheckoutForm';
-import { useAuth } from '../contexts/AuthContext';
+import VolumeButton from './VolumeButton';
 import hatchGif from '../assets/misc/hatch.gif';
 import ButterflyColorChanger from '../assets/logos/butterfly.png';
 
@@ -31,10 +30,10 @@ async function getGifDurationMs(src) {
   }
 }
 
-export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate }) {
-  const { user } = useAuth();
+export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [msg, setMsg] = useState('');
 
   // 3-step wizard state
@@ -56,6 +55,9 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [hatchKey, setHatchKey] = useState(0); // force GIF remount each play
   const [spawnVisible, setSpawnVisible] = useState(false); // show butterfly centered after hatch
   const [hatchSrc, setHatchSrc] = useState(hatchGif);
+  const [step1Error, setStep1Error] = useState('');
+  const [step2Error, setStep2Error] = useState('');
+  const hatchFireRef = useRef(false);
 
   // Load chrysalis gifs: src/assets/chrysalis/chrysalis-<color>.gif
   const [chrysalisMap, setChrysalisMap] = useState({});
@@ -118,25 +120,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     }
   }, []);
 
-  const createButterfly = async () => {
-    const gardenRef = doc(db, 'gardens', gardenId);
-    const colorKey = selectedColor ? selectedColor.toLowerCase() : null;
-
-    const docRef = await addDoc(collection(db, 'butterflies'), {
-      gifter: name,
-      message: msg,
-      garden: gardenRef,
-      gardenId,
-      color: colorKey, // selected color saved
-      // Stamp the purchaser so the garden view can pin "my butterflies"
-      // on-screen for the current viewer. Null when unauthenticated.
-      uid: user?.uid || null,
-      created: new Date(),
-    });
-    console.log('Butterfly created:', docRef.id);
-    return docRef.id;
-  };
-
   const release = async () => {
     // Close shop immediately so it doesn't affect butterflies
     setOpen(null);
@@ -149,6 +132,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     const baseSrc = (colorKey && chrysalisMap[colorKey]) ? chrysalisMap[colorKey] : hatchGif;
 
     // Cache-bust + remount image to guarantee full restart
+    hatchFireRef.current = false;
     const bust = Date.now();
     setHatchSrc(`${baseSrc}?cb=${bust}`);
     setHatchKey((k) => k + 1);
@@ -159,6 +143,8 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
 
   // Wizard navigation
   const goNext = () => {
+    if (!hasColor) { setStep1Error('Please choose a butterfly first.'); return; }
+    setStep1Error('');
     setWizardDir('forward');
     setWizardStep((s) => Math.min(3, s + 1));
   };
@@ -175,6 +161,8 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
 
   // Create PaymentIntent and move to payment step
   const handleContinueToPayment = async () => {
+    if (!hasNameMsg) { setStep2Error('Please enter your name and a message.'); return; }
+    setStep2Error('');
     setCreatingIntent(true);
     setPaymentError(null);
 
@@ -184,6 +172,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         gardenId,
         color: colorKey || '',
         gifter: name.trim(),
+        email: email.trim(),
         message: msg.trim(),
       });
       setClientSecret(result.data.clientSecret);
@@ -220,7 +209,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     setPaymentError(null);
   };
 
-  // Validation
   const hasColor = !!selectedColor;
   const hasNameMsg = !!(name && name.trim()) && !!(msg && msg.trim());
 
@@ -255,19 +243,18 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             alt="Butterfly hatching"
             style={{ boxShadow: 'none', filter: 'none', animation: 'none' }}
             onLoad={async () => {
+              if (hatchFireRef.current) return;
+              hatchFireRef.current = true;
               const duration = await getGifDurationMs(hatchSrc);
-              setTimeout(async () => {
-                try {
-                  await createButterfly();
-                } catch (e) {
-                  // ignore — still fade out
-                }
-                // Fade out the overlay (CSS transition: 280ms)
+              setTimeout(() => {
+                // Swap to transparent pixel so the GIF doesn't loop during fade
+                setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
                 setHatchFading(true);
                 setTimeout(() => {
                   setHatchPlaying(false);
                   setHatchFading(false);
                   setName('');
+                  setEmail('');
                   setMsg('');
                   setSelectedColor(null);
                 }, 350);
@@ -364,11 +351,12 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       </style>
 
       <div className="garden-controls" style={{ zIndex: 21 }}>
+        {onVolumeToggle && <VolumeButton muted={muted} onToggle={onVolumeToggle} />}
         <button className="btn ghost" onClick={() => setOpen('list')}>
-          Butterflies ({butterflies.filter(b => b.color !== 'white').length})
+          View all butterflies
         </button>
         <button className="release-btn" onClick={() => setOpen('buy')}>
-          <span className="release-label">Release me!</span>
+          <span className="release-label">Release a butterfly</span>
           <img
             src={ButterflyColorChanger}
             alt="Buy & Release"
@@ -456,13 +444,9 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 })}
               </div>
 
-              <div className="cta-row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-                <button
-                  className="btn primary"
-                  onClick={goNext}
-                  disabled={!hasColor}
-                  aria-disabled={!hasColor}
-                >
+              {step1Error && <p style={{ color: '#c44040', fontSize: 13, margin: '8px 0 0', textAlign: 'right' }}>{step1Error}</p>}
+              <div className="cta-row" style={{ justifyContent: 'flex-end', marginTop: 8 }}>
+                <button className="btn primary" onClick={goNext}>
                   Next
                 </button>
               </div>
@@ -498,6 +482,13 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
+                <input
+                  className="in"
+                  type="email"
+                  placeholder="Your email (optional)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
                 <textarea
                   className="in"
                   placeholder="A heartfelt message..."
@@ -512,13 +503,13 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 <div className="buy-error" style={{ marginTop: 12 }}>{paymentError}</div>
               )}
 
-              <div className="cta-row" style={{ justifyContent: 'space-between', marginTop: 16 }}>
+              {step2Error && <p style={{ color: '#c44040', fontSize: 13, margin: '8px 0 0' }}>{step2Error}</p>}
+              <div className="cta-row" style={{ justifyContent: 'space-between', marginTop: 8 }}>
                 <button className="btn ghost" onClick={goBack}>Back</button>
                 <button
                   className="btn primary"
                   onClick={handleContinueToPayment}
-                  disabled={!hasNameMsg || creatingIntent}
-                  aria-disabled={!hasNameMsg || creatingIntent}
+                  disabled={creatingIntent}
                 >
                   {creatingIntent ? 'Loading...' : 'Continue to Payment'}
                 </button>
