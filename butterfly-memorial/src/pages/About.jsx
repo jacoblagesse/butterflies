@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
+import DobsonPhoto from '../assets/misc/dobson.jpg';
 import './spirit-butterfly.css';
 
 export default function About() {
@@ -59,10 +60,15 @@ export default function About() {
               Sadly, many people have no gardens. Our virtual ones allow anyone to share in the same comfort and
               peace that Stephanie's mother feels through the magic of butterflies.
             </p>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
+            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1.5rem' }}>
               This initiative is a heartwarming testament to a mother's love and her journey from pain to healing.
               We hope it offers some of the peace that we all are seeking.
             </p>
+            <img
+              src={DobsonPhoto}
+              alt="Stephanie Dobson"
+              style={{ width: '100%', borderRadius: 'var(--r-md)', display: 'block' }}
+            />
           </div>
 
           <div style={{ textAlign: 'center' }}>
