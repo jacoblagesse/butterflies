@@ -8,8 +8,8 @@ import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import { useAuth } from "../contexts/AuthContext";
 import "./spirit-butterfly.css";
 
-import { db } from "../firebase";
-import { collection, addDoc, getDoc, doc } from "firebase/firestore";
+import { db, createInitialButterflyFn } from "../firebase";
+import { collection, addDoc, doc } from "firebase/firestore";
 
 import LogoUrl from "../assets/logos/logo.svg";
 
@@ -113,16 +113,13 @@ export default function Creation() {
     const gardenId = await createGarden();
     console.log(gardenId);
 
-    // Create the free white butterfly with the honoree's name and obit
-    const gardenRef = doc(db, "gardens", gardenId);
+    // Create the free white butterfly server-side (client butterfly writes are
+    // denied by Firestore rules; the function verifies garden ownership).
     const honoreeName = `${form.firstName} ${form.lastName}`.trim();
-    await addDoc(collection(db, "butterflies"), {
+    await createInitialButterflyFn({
+      gardenId,
       gifter: honoreeName,
       message: form.message || "",
-      garden: gardenRef,
-      gardenId,
-      color: "white",
-      created: new Date(),
     });
 
     navigate(`/garden/${gardenId}`);

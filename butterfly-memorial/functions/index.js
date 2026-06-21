@@ -20,9 +20,33 @@ const getStripeKey = () => {
 // Only declare secrets in production — the emulator reads from env vars.
 const fnConfig = isEmulator ? {} : { secrets: [stripeSecretKey] };
 
+// Input constraints — keep server-side so the client can't write oversized
+// or unexpected values into world-readable documents.
+const ALLOWED_COLORS = ["blue", "green", "orange", "pink", "purple", "yellow"];
+const MAX_GIFTER_LEN = 80;
+const MAX_MESSAGE_LEN = 500;
+
+// Confirm the authenticated caller owns the referenced garden. Returns the
+// garden snapshot data on success, throws otherwise.
+const assertGardenOwner = async (gardenId, uid) => {
+  const gardenSnap = await db.doc(`gardens/${gardenId}`).get();
+  if (!gardenSnap.exists) {
+    throw new HttpsError("not-found", "Garden does not exist.");
+  }
+  const owner = gardenSnap.data().user;
+  if (!owner || owner.path !== `users/${uid}`) {
+    throw new HttpsError("permission-denied", "You do not own this garden.");
+  }
+  return gardenSnap.data();
+};
+
 exports.createPaymentIntent = onCall(
   fnConfig,
   async (request) => {
+    // Buying is allowed anonymously; capture uid when present so the
+    // purchase can be tied to an account and ownership-checked on confirm.
+    const uid = request.auth?.uid || null;
+
     const { gardenId, color, gifter, email, message } = request.data;
 
     if (!gardenId || !gifter || !message) {
@@ -31,8 +55,16 @@ exports.createPaymentIntent = onCall(
         "gardenId, gifter, and message are required."
       );
     }
+    if (typeof gifter !== "string" || gifter.length > MAX_GIFTER_LEN) {
+      throw new HttpsError("invalid-argument", "Invalid gifter name.");
+    }
+    if (typeof message !== "string" || message.length > MAX_MESSAGE_LEN) {
+      throw new HttpsError("invalid-argument", "Message is too long.");
+    }
+    if (color && !ALLOWED_COLORS.includes(color)) {
+      throw new HttpsError("invalid-argument", "Unknown butterfly color.");
+    }
 
-    const uid = request.auth?.uid || null;
     const stripe = require("stripe")(getStripeKey());
 
     // Only attach a receipt email when it's well-formed — a malformed value
@@ -45,33 +77,24 @@ exports.createPaymentIntent = onCall(
       currency: "usd",
       payment_method_types: ["card"],
       receipt_email: validEmail,
-      metadata: {
-        gardenId,
-        color: color || "",
-        gifter,
-        email: email || "",
-        message,
-        uid: uid || "",
-      },
+      metadata: { gardenId, uid: uid || "" },
     });
 
-    // Write pending payment record to Firestore (non-critical in emulator)
-    try {
-      await db.collection("payments").doc(paymentIntent.id).set({
-        uid,
-        gardenId,
-        color: color || null,
-        gifter,
-        email: email || null,
-        message,
-        amount: 199,
-        currency: "usd",
-        status: "pending",
-        createdAt: new Date(),
-      });
-    } catch (err) {
-      console.warn("Firestore write failed (ok in emulator):", err.message);
-    }
+    // The pending payment record is the source of truth confirmPayment reads
+    // back — it must be written, so a failure here fails the request.
+    await db.collection("payments").doc(paymentIntent.id).set({
+      uid,
+      gardenId,
+      color: color || null,
+      gifter,
+      email: validEmail || null,
+      message,
+      amount: 199,
+      currency: "usd",
+      status: "pending",
+      butterflyId: null,
+      createdAt: new Date(),
+    });
 
     return { clientSecret: paymentIntent.client_secret };
   }
@@ -80,17 +103,14 @@ exports.createPaymentIntent = onCall(
 exports.confirmPayment = onCall(
   fnConfig,
   async (request) => {
-    const { paymentIntentId } = request.data;
+    const uid = request.auth?.uid || null;
 
+    const { paymentIntentId } = request.data;
     if (!paymentIntentId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "paymentIntentId is required."
-      );
+      throw new HttpsError("invalid-argument", "paymentIntentId is required.");
     }
 
     const stripe = require("stripe")(getStripeKey());
-
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status !== "succeeded") {
@@ -100,44 +120,109 @@ exports.confirmPayment = onCall(
       );
     }
 
-    // Update payment record in Firestore (non-critical in emulator)
-    try {
-      await db.collection("payments").doc(paymentIntentId).update({
-        status: "succeeded",
-        confirmedAt: new Date(),
-      });
-    } catch (err) {
-      console.warn("Firestore update failed (ok in emulator):", err.message);
-    }
+    const paymentRef = db.collection("payments").doc(paymentIntentId);
 
-    const meta = paymentIntent.metadata;
+    // Run in a transaction so a replayed call can't mint a second butterfly:
+    // the butterfly is created exactly once, gated on the payment record.
+    const result = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(paymentRef);
+      if (!snap.exists) {
+        throw new HttpsError("not-found", "Payment record not found.");
+      }
+      const data = snap.data();
 
-    // Create the butterfly document server-side so no client auth is needed
-    let butterflyId = null;
-    try {
-      const gardenRef = db.doc(`gardens/${meta.gardenId}`);
-      const butterflyRef = await db.collection("butterflies").add({
-        gifter: meta.gifter,
-        email: meta.email || null,
-        message: meta.message,
-        garden: gardenRef,
-        gardenId: meta.gardenId,
-        color: meta.color || null,
-        uid: meta.uid || null,
+      // If the purchase was tied to an account, only that account may confirm
+      // it. Anonymous purchases (no uid on record) skip this check — replay is
+      // still prevented by the one-butterfly-per-payment guard below.
+      if (data.uid && data.uid !== uid) {
+        throw new HttpsError("permission-denied", "This payment is not yours.");
+      }
+
+      // Idempotency: if a butterfly was already minted, return it unchanged.
+      if (data.butterflyId) {
+        return {
+          butterflyId: data.butterflyId,
+          gardenId: data.gardenId,
+          color: data.color,
+          gifter: data.gifter,
+          message: data.message,
+        };
+      }
+
+      // Create the butterfly. Note: no email / uid on this doc — it is
+      // world-readable. PII stays on the locked-down payments record.
+      const butterflyRef = db.collection("butterflies").doc();
+      tx.set(butterflyRef, {
+        gifter: data.gifter,
+        message: data.message,
+        garden: db.doc(`gardens/${data.gardenId}`),
+        gardenId: data.gardenId,
+        color: data.color || null,
         created: new Date(),
       });
-      butterflyId = butterflyRef.id;
-    } catch (err) {
-      console.warn("Butterfly creation failed:", err.message);
+      tx.update(paymentRef, {
+        status: "succeeded",
+        confirmedAt: new Date(),
+        butterflyId: butterflyRef.id,
+      });
+
+      return {
+        butterflyId: butterflyRef.id,
+        gardenId: data.gardenId,
+        color: data.color,
+        gifter: data.gifter,
+        message: data.message,
+      };
+    });
+
+    return { verified: true, ...result };
+  }
+);
+
+// The free "white" butterfly created at garden creation time. Client-side
+// butterfly writes are denied by Firestore rules, so this runs server-side
+// and is gated on garden ownership + one-per-garden idempotency.
+exports.createInitialButterfly = onCall(
+  {},
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
     }
 
-    return {
-      verified: true,
-      butterflyId,
-      gardenId: meta.gardenId,
-      color: meta.color,
-      gifter: meta.gifter,
-      message: meta.message,
-    };
+    const { gardenId, gifter, message } = request.data;
+    if (!gardenId || !gifter) {
+      throw new HttpsError("invalid-argument", "gardenId and gifter are required.");
+    }
+    if (typeof gifter !== "string" || gifter.length > MAX_GIFTER_LEN) {
+      throw new HttpsError("invalid-argument", "Invalid gifter name.");
+    }
+    if (message && (typeof message !== "string" || message.length > MAX_MESSAGE_LEN)) {
+      throw new HttpsError("invalid-argument", "Message is too long.");
+    }
+
+    await assertGardenOwner(gardenId, uid);
+
+    // One free white butterfly per garden.
+    const existing = await db
+      .collection("butterflies")
+      .where("gardenId", "==", gardenId)
+      .where("color", "==", "white")
+      .limit(1)
+      .get();
+    if (!existing.empty) {
+      return { butterflyId: existing.docs[0].id, alreadyExists: true };
+    }
+
+    const butterflyRef = await db.collection("butterflies").add({
+      gifter,
+      message: message || "",
+      garden: db.doc(`gardens/${gardenId}`),
+      gardenId,
+      color: "white",
+      created: new Date(),
+    });
+
+    return { butterflyId: butterflyRef.id };
   }
 );

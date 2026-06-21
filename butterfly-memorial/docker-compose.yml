@@ -24,5 +24,6 @@ services:
     volumes:
       - ./functions:/app/functions
       - /app/functions/node_modules
+      - ./firestore.rules:/app/firestore.rules   # hot-reload rules without rebuild
     env_file:
       - .env.local

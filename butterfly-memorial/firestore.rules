@@ -26,15 +26,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Butterflies are publicly readable. Authenticated users may create
-    // (the initial free white butterfly + paid butterflies after a
-    // confirmed Stripe payment). No client-side updates or deletes.
-    // Future hardening: move paid-butterfly creation entirely into the
-    // Cloud Function so writes can be gated on a verified payment.
+    // Butterflies are publicly readable. ALL creation happens server-side via
+    // Cloud Functions (firebase-admin bypasses rules): the free white butterfly
+    // through createInitialButterfly, paid butterflies through confirmPayment.
+    // Direct client writes are denied so payment can't be bypassed.
     match /butterflies/{butterflyId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Payments are written only by the Cloud Function (firebase-admin
