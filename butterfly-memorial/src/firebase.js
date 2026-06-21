@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import {
   getAuth,
@@ -55,8 +55,9 @@ export const functions = getFunctions(app);
 export const createPaymentIntentFn = httpsCallable(functions, 'createPaymentIntent');
 export const confirmPaymentFn = httpsCallable(functions, 'confirmPayment');
 
-// Connect to emulator only when explicitly opted in
+// Connect to emulators only when explicitly opted in
 if (import.meta.env.VITE_USE_EMULATOR === "true") {
   const emulatorHost = import.meta.env.VITE_EMULATOR_HOST || "127.0.0.1";
   connectFunctionsEmulator(functions, emulatorHost, 5001);
+  connectFirestoreEmulator(db, emulatorHost, 8080);
 }

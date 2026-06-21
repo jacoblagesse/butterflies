@@ -35,11 +35,16 @@ exports.createPaymentIntent = onCall(
     const uid = request.auth?.uid || null;
     const stripe = require("stripe")(getStripeKey());
 
+    // Only attach a receipt email when it's well-formed — a malformed value
+    // (e.g. "test") makes Stripe reject the whole PaymentIntent.
+    const validEmail =
+      email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : undefined;
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 199, // $1.99 in cents
       currency: "usd",
       payment_method_types: ["card"],
-      receipt_email: email || undefined,
+      receipt_email: validEmail,
       metadata: {
         gardenId,
         color: color || "",
