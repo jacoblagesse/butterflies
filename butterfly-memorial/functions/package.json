@@ -2,7 +2,7 @@
   "name": "butterfly-memorial-functions",
   "description": "Cloud Functions for Butterfly Memorial Stripe payments",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

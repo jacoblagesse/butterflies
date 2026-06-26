@@ -825,6 +825,10 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 
 /* --- Mobile / short viewport: drop snap, let content flow - */
 @media (max-width: 640px), (max-height: 720px) {
+  html, body, #root {
+    height: auto;
+    min-height: 100%;
+  }
   .page-snap {
     height: auto;
     overflow-y: visible;
