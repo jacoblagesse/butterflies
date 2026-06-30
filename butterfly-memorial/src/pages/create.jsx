@@ -145,7 +145,7 @@ export default function Creation() {
   };
 
   return (
-    <div className="page full-page" style={{ position: "relative", height: "100vh" }}>
+    <div className="page full-page create-page" style={{ position: "relative", height: "100dvh" }}>
       <VideoBackground backgroundKey={theme.key} />
 
       {/* Ambient butterfly layer */}
@@ -193,7 +193,7 @@ export default function Creation() {
             display: "grid",
             gridTemplateColumns: "1fr",
             placeItems: "center",
-            padding: "24px",
+            padding: "clamp(10px, 3vw, 24px)",
             // Consume remaining space between header and footer
             flex: 1,
             overflow: "hidden",
@@ -263,7 +263,7 @@ export default function Creation() {
                   <h2 className="h2">Loved one’s details</h2>
                   <p className="sub">A few basics to personalize the page.</p>
                   <div style={{ display: "grid", gap: 12 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className="name-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <input
                         className="in"
                         placeholder="First name"
@@ -344,6 +344,9 @@ export default function Creation() {
         </section>
 
       </div>
+      <footer className="page-footer" style={{ position: "relative", zIndex: 2 }}>
+        Copyright LavidaCo 2026
+      </footer>
     </div>
   );
 }

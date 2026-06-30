@@ -6,6 +6,7 @@ import VolumeButton from "../components/VolumeButton";
 import "./spirit-butterfly.css";
 import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
 import whiteButterfly from "../assets/butterflies/white/flying.gif";
+import aboutFlowers from "../assets/backgrounds/about_flowers.png";
 import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 
 import { db } from "../firebase";
@@ -215,9 +216,9 @@ export default function Landing() {
           <p className="landing-about-text" style={{ marginBottom: 0 }}>
             Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
             Together, we'll honor their spirit with heartfelt tributes in a tranquil space.{" "}
-            <Link to="/garden/demo" className="landing-example-link">See an example garden here.</Link>
+            <Link to="/garden/roFm02RISiK356RDTG7q" className="landing-example-link">See an example garden here.</Link>
           </p>
-          <img src={whiteButterfly} alt="" aria-hidden="true" className="landing-about-divider" />
+          <img src={aboutFlowers} alt="" aria-hidden="true" className="landing-about-divider" />
           <p className="landing-about-text">
             <strong>As a gift to those honoring a loved one, we offer a free garden memorial and a white butterfly.</strong>{" "}
             Share the garden with friends and family, who can release their own colorful butterflies
@@ -228,10 +229,6 @@ export default function Landing() {
             Create your first Garden
           </Link>
 
-          <p style={{ marginTop: '2rem', marginBottom: 0, fontSize: '12px', color: 'var(--muted)', textAlign: 'center', lineHeight: 1.6 }}>
-            © 2026 ButterflyTribute.com. All rights reserved.<br />
-            Web development by LaVidaCo Communications
-          </p>
         </div>
       </section>
 

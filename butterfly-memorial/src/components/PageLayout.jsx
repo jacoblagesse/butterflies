@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import Header from "./Header";
 import AuthPopup from "./AuthPopup";
 import FlyingButterfly from "./FlyingButterfly";
@@ -90,11 +90,9 @@ export default function PageLayout({ children, centered = false, snap = false })
         {renderedChildren}
       </div>
 
-      {!snap && (
-        <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
-          &copy; 2026 ButterflyTribute.com. All rights reserved. Web development by LaVidaCo Communications
-        </footer>
-      )}
+      <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
+        Copyright LavidaCo 2026
+      </footer>
     </div>
   );
 }

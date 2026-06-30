@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LogoUrl from '../assets/logos/logo.svg';
 import './Header.css';
@@ -133,8 +133,8 @@ export default function Header({ onSignInClick, variant = 'default' }) {
     <div style={{ position: 'sticky', top: 0, zIndex: 10, padding: '12px 16px', boxSizing: 'border-box', width: '100%' }}>
       <header style={{ justifyContent: 'flex-end' }}>
         <nav>
-          <Link to="/" style={{ color: 'rgba(255,255,255,0.8)' }}>Home</Link>
-          <Link to="/about" style={{ color: 'rgba(255,255,255,0.8)' }}>About</Link>
+          <NavLink to="/" end className="nav-link">Home</NavLink>
+          <NavLink to="/about" className="nav-link">About</NavLink>
           <UserDropdown onSignInClick={onSignInClick} />
         </nav>
       </header>

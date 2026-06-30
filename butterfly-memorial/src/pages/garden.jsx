@@ -27,6 +27,7 @@ export default function Garden() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [butterflies, setButterflies] = useState([]);
+  const [pendingButterflyId, setPendingButterflyId] = useState(null);
   const [isAuthOpen, setAuthOpen] = useState(false);
 
   // Hover card: {visible, name, message, x, y, tailSide}
@@ -37,7 +38,10 @@ export default function Garden() {
   // current viewer's purchases) always count toward the cap; excess
   // unpinned butterflies wait in a pool and rotate in when an active one
   // leaves the screen.
-  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef, 8);
+  const visibleButterflies = pendingButterflyId
+    ? butterflies.filter((b) => b.id !== pendingButterflyId)
+    : butterflies;
+  const butterflyStates = useButterflyPhysics(visibleButterflies, stageRef, frozenRef, 8);
 
   useEffect(() => {
     if (!gardenId) return;
@@ -285,7 +289,7 @@ export default function Garden() {
               </>
             )}
 
-            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} />
+            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={setPendingButterflyId} />
           </div>
         </main>
       </div>

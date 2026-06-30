@@ -548,9 +548,9 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* ===== Footer ===== */
 .page-footer {
   text-align: center;
-  padding: 20px 0;
-  color: var(--muted);
-  font-size: var(--fs-small);
+  padding: 16px 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -627,23 +627,19 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   height: auto;
   display: block;
   filter:
-    drop-shadow(0 2px 12px rgba(0, 130, 150, 0.4))
-    drop-shadow(0 4px 16px rgba(18, 12, 28, 0.6));
+    drop-shadow(0 2px 12px rgba(0,119,170,0))
+    drop-shadow(0 4px 16px rgba(0,50,80,.6));
 }
 
 .landing-hero-tagline {
   font-family: 'Playfair Display', serif;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(1.5rem, 3.5vw, 2.3rem);
-  color: #ec4097;
+  font-size: clamp(0.765rem, 2.68vw, 1.76rem);
+  color: #4db1db;
   margin: 0;
   letter-spacing: 0.01em;
-  max-width: 600px;
-  text-shadow:
-    0 0 18px rgba(255, 255, 255, 0.75),
-    0 2px 12px rgba(0, 0, 0, 0.3),
-    0 4px 16px rgba(18, 12, 28, 0.4);
+  white-space: nowrap;
 }
 
 .landing-hero-main {
@@ -777,10 +773,10 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 .landing-about-text strong { color: var(--ink); }
 
 .landing-about-divider {
-  width: 150px;
+  width: min(320px, 90%);
   height: auto;
   display: block;
-  margin: 0 auto;
+  margin: 1rem auto;
   pointer-events: none;
   user-select: none;
 }
@@ -831,7 +827,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   }
   .page-snap {
     height: auto;
-    overflow-y: visible;
+    overflow: visible;
     scroll-snap-type: none;
   }
   .landing-section {
@@ -845,7 +841,31 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
     min-height: calc(100vh - 80px);
     min-height: calc(100dvh - 80px);
   }
-  /* the floating "Back to Top" / "Learn More" buttons aren't useful
-     once the page scrolls naturally — hide them */
-  .landing-nav-btn { display: none; }
+  .landing-hero-tagline {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    white-space: normal;
+  }
+  .landing-hero-main {
+    justify-content: flex-end;
+    padding-bottom: 8vh;
+  }
+  .landing-cta {
+    order: -1;
+  }
+  .create-page {
+    height: 100dvh;
+  }
+  .name-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-card {
+    padding: 20px 16px;
+    box-sizing: border-box;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .wrap {
+    padding: 0;
+  }
 }

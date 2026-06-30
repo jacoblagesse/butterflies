@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DobsonPhoto from '../assets/misc/dobson.jpg';
+import AboutFlowers from '../assets/backgrounds/about_flowers.png';
 import './spirit-butterfly.css';
 
 export default function About() {
@@ -27,9 +28,10 @@ export default function About() {
             </p>
             <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
               Sometimes, these personal gardens become places of gathering, where family and friends celebrate
-              the life of someone dearly loved. For others, they become private sanctuaries where the
-              broken-hearted can feel moments of connection that soften sorrow, mend the heart, and lift the spirit.
+              the life of someone dearly loved. For others, they become private sanctuaries where they can feel
+              moments of connection that soften sorrow, mend the heart, and lift the spirit.
             </p>
+            <img src={AboutFlowers} alt="" aria-hidden="true" className="landing-about-divider" />
             <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
               We hope these gardens offer comfort in beautiful memories shared by family and friends as they
               release butterflies in honor of a loved one. Each becomes its own sacred haven: a place of shared
@@ -37,7 +39,22 @@ export default function About() {
             </p>
           </div>
 
-          <div className="hero-card" style={{ padding: 'clamp(28px, 6vw, 48px)' }}>
+          <div className="hero-card" style={{ padding: 'clamp(28px, 6vw, 48px)', overflow: 'hidden' }}>
+            <img
+              src={DobsonPhoto}
+              alt="Stephanie Dobson"
+              style={{
+                float: 'right',
+                width: 'min(180px, 40%)',
+                aspectRatio: '1 / 1',
+                objectFit: 'cover',
+                borderRadius: '50%',
+                marginLeft: '1.4rem',
+                marginBottom: '0.5rem',
+                maskImage: 'radial-gradient(circle, black 55%, transparent 80%)',
+                WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 80%)',
+              }}
+            />
             <h2 style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
@@ -51,24 +68,18 @@ export default function About() {
               This website was born from deep love and healing, inspired by the life and spirit of Stephanie Dobson.
             </p>
             <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
-              Stephanie's unexpected passing left a void in the hearts of those who knew and loved her. Her mother,
-              in particular, found solace in the beauty and symbolism of butterflies. To her, butterflies represented
-              Stephanie's spirit — free, beautiful, and ever-present. She began raising butterflies in her Florida
-              garden, taking solace in the symbolism of transformation in a caterpillar becoming a winged jewel.
+              Stephanie's unexpected passing left a void in the hearts of those who knew and loved her. Her mother
+              found comfort in the beauty and symbolism of butterflies. She began raising butterflies in her Florida
+              garden, taking solace in the transformation of a caterpillar becoming a winged jewel.
             </p>
             <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
-              Sadly, many people have no gardens. Our virtual ones allow anyone to share in the same comfort and
-              peace that Stephanie's mother feels through the magic of butterflies.
+              Our virtual gardens allow anyone to share in the same comfort and peace that Stephanie's mother feels
+              through the magic of butterflies.
             </p>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1.5rem' }}>
+            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
               This initiative is a heartwarming testament to a mother's love and her journey from pain to healing.
-              We hope it offers some of the peace that we all are seeking.
+              We hope it offers some of the peace that we all seek.
             </p>
-            <img
-              src={DobsonPhoto}
-              alt="Stephanie Dobson"
-              style={{ width: '100%', borderRadius: 'var(--r-md)', display: 'block' }}
-            />
           </div>
 
           <div style={{ textAlign: 'center' }}>

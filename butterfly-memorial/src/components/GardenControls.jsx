@@ -30,7 +30,7 @@ async function getGifDurationMs(src) {
   }
 }
 
-export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle }) {
+export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -191,8 +191,9 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     setPaymentError(null);
 
     try {
-      await confirmPaymentFn({ paymentIntentId });
-      // Payment verified — trigger hatch animation + butterfly creation
+      const result = await confirmPaymentFn({ paymentIntentId });
+      const butterflyId = result?.data?.butterflyId;
+      if (butterflyId) onPendingChange?.(butterflyId);
       release();
     } catch (err) {
       setPaymentError(err.message || 'Payment verification failed.');
@@ -250,6 +251,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 // Swap to transparent pixel so the GIF doesn't loop during fade
                 setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
                 setHatchFading(true);
+                onPendingChange?.(null);
                 setTimeout(() => {
                   setHatchPlaying(false);
                   setHatchFading(false);
