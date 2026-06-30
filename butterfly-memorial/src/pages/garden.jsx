@@ -38,10 +38,10 @@ export default function Garden() {
   // current viewer's purchases) always count toward the cap; excess
   // unpinned butterflies wait in a pool and rotate in when an active one
   // leaves the screen.
-  const visibleButterflies = pendingButterflyId
-    ? butterflies.filter((b) => b.id !== pendingButterflyId)
-    : butterflies;
-  const butterflyStates = useButterflyPhysics(visibleButterflies, stageRef, frozenRef, 8);
+  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef, 8);
+  const visibleStates = pendingButterflyId
+    ? butterflyStates.filter((s) => s.id !== pendingButterflyId)
+    : butterflyStates;
 
   useEffect(() => {
     if (!gardenId) return;
@@ -136,7 +136,7 @@ export default function Garden() {
 
         <main className="garden-stage">
           <div ref={stageRef} className="garden">
-            {butterflyStates.map((s) => (
+            {visibleStates.map((s) => (
               <FlyingButterfly
                 key={s.id}
                 x={s.x}
