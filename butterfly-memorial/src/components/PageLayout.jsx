@@ -2,7 +2,10 @@ import { useState, useRef } from "react";
 import Header from "./Header";
 import AuthPopup from "./AuthPopup";
 import FlyingButterfly from "./FlyingButterfly";
+import VolumeButton from "./VolumeButton";
+import DevRibbon from "./DevRibbon";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
+import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 import DaisiesBackground from "../assets/backgrounds/daisies.png";
 import "../pages/spirit-butterfly.css";
 
@@ -20,6 +23,7 @@ export default function PageLayout({ children, centered = false, snap = false })
   const [isAuthOpen, setAuthOpen] = useState(false);
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
+  const { muted, toggleMute } = useBackgroundAudio();
 
   // Children may be a function so the page body can request the auth popup
   // be opened (e.g. a "Sign In" button inside the content).
@@ -65,9 +69,12 @@ export default function PageLayout({ children, centered = false, snap = false })
         ))}
       </div>
 
+      <DevRibbon />
+
       {/* Header */}
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <Header onSignInClick={openSignIn} />
+      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, right: 24, zIndex: 100 }} />
 
       {/* Content area */}
       <div

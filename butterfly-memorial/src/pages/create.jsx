@@ -4,7 +4,10 @@ import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
 import VideoBackground from "../components/VideoBackground";
 import FlyingButterfly from "../components/FlyingButterfly";
+import VolumeButton from "../components/VolumeButton";
+import DevRibbon from "../components/DevRibbon";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
+import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 import { useAuth } from "../contexts/AuthContext";
 import "./spirit-butterfly.css";
 
@@ -49,6 +52,7 @@ export default function Creation() {
   const prevRef = useRef(null);
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
+  const { muted, toggleMute } = useBackgroundAudio();
   useEffect(() => {
     if (step !== 4) return;
 
@@ -178,8 +182,11 @@ export default function Creation() {
         ))}
       </div>
 
+      <DevRibbon />
+
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <Header onSignInClick={() => setAuthOpen(true)} />
+      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, right: 24, zIndex: 100 }} />
 
       <div
         className="wrap full-wrap"

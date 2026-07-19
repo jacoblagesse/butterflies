@@ -7,6 +7,7 @@ import AuthPopup from "../components/AuthPopup";
 import GardenControls from "../components/GardenControls";
 import FlyingButterfly from "../components/FlyingButterfly";
 import VideoBackground from "../components/VideoBackground";
+import DevRibbon from "../components/DevRibbon";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 import { useAuth } from "../contexts/AuthContext";
@@ -129,6 +130,7 @@ export default function Garden() {
   return (
     <div className="page full-page" style={{ position: "relative" }}>
       <VideoBackground backgroundKey={garden.style || "flowers"} />
+      <DevRibbon />
 
       <div className="wrap full-wrap" style={{ padding: 0 }}>
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />

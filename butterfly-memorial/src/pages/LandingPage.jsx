@@ -2,12 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
-import VolumeButton from "../components/VolumeButton";
 import "./spirit-butterfly.css";
 import logoSvg from "../assets/logos/butterflyhomepagelogo.svg";
 import whiteButterfly from "../assets/butterflies/white/flying.gif";
 import aboutFlowers from "../assets/backgrounds/about_flowers.png";
-import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -21,8 +19,6 @@ export default function Landing() {
   const [hasSearched, setHasSearched] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const debounceRef = useRef(null);
-
-  const { muted, toggleMute } = useBackgroundAudio();
 
   // Track which section is in view
   useEffect(() => {
@@ -105,8 +101,6 @@ export default function Landing() {
 
   return (
     <PageLayout snap>
-      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100 }} />
-
       {/* ── Fixed nav buttons — portaled to body to escape stacking contexts ── */}
       {createPortal(
         <>
