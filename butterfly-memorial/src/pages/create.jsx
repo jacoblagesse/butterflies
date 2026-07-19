@@ -138,6 +138,10 @@ export default function Creation() {
   };
 
   const createHonoreeHandler = async () => {
+    if (!isAuthenticated) {
+      setAuthOpen(true);
+      return;
+    }
     const honoreeId = await createHonoree();
 
     setCurrentHonoree(honoreeId);
