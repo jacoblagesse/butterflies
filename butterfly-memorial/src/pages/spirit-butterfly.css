@@ -807,7 +807,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   animation: bob 2s ease-in-out infinite;
 }
 .landing-nav-btn--top    { top: 16px; }
-.landing-nav-btn--bottom { bottom: 28px; }
+.landing-nav-btn--bottom { bottom: 56px; }
 
 .landing-nav-btn-label {
   font-size: 15px;

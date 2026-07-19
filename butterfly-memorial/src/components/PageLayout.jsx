@@ -90,7 +90,14 @@ export default function PageLayout({ children, centered = false, snap = false })
         {renderedChildren}
       </div>
 
-      <footer className="page-footer" style={{ position: "relative", zIndex: 1 }}>
+      <footer
+        className="page-footer"
+        style={
+          snap
+            ? { position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 2 }
+            : { position: "relative", zIndex: 1 }
+        }
+      >
         Copyright LavidaCo 2026
       </footer>
     </div>
