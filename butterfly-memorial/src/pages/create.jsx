@@ -186,7 +186,7 @@ export default function Creation() {
 
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <Header onSignInClick={() => setAuthOpen(true)} />
-      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, right: 24, zIndex: 100 }} />
+      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, left: 24, zIndex: 100 }} />
 
       <div
         className="wrap full-wrap"

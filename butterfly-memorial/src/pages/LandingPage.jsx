@@ -210,7 +210,7 @@ export default function Landing() {
           <p className="landing-about-text" style={{ marginBottom: 0 }}>
             Choose from our serene garden scenes, each designed to reflect peace and hold memories of a loved one.
             Together, we'll honor their spirit with heartfelt tributes in a tranquil space.{" "}
-            <Link to="/garden/roFm02RISiK356RDTG7q" className="landing-example-link">See an example garden here.</Link>
+            <Link to="/garden/5jOOxEnXkh3BQf7jqQx7" className="landing-example-link">See an example garden here.</Link>
           </p>
           <img src={aboutFlowers} alt="" aria-hidden="true" className="landing-about-divider" />
           <p className="landing-about-text">

@@ -282,7 +282,7 @@ export default function Garden() {
                     color: "rgba(255,255,255,0.75)",
                     textShadow: "0 1px 4px rgba(0,0,0,0.6)",
                     maxWidth: 280,
-                    lineHeight: 1.6,
+                    lineHeight: 1.3,
                   }}>
                     {honoree.obit}
                   </div>

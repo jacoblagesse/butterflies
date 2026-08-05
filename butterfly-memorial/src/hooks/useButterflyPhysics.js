@@ -71,6 +71,11 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
         size: calculateSize(y, height),
         imageIndex,
         direction: Math.cos(heading) > 0 ? -1 : 1,
+        // x position where the sprite last flipped facing direction — used
+        // to require a minimum horizontal travel before flipping again,
+        // so small heading jitter near-vertical headings doesn't cause
+        // the sprite to flap back and forth every frame.
+        lastFlipX: x,
         // Landing state
         isLanded: false,
         isLanding: false,
@@ -202,6 +207,7 @@ function updateButterflyPosition(b, dt, list) {
     b.vx = Math.cos(b.heading) * b.speed;
     b.vy = Math.sin(b.heading) * b.speed;
     b.direction = b.vx > 0 ? -1 : 1;
+    b.lastFlipX = b.x;
     return;
   }
 
@@ -251,6 +257,7 @@ function updateButterflyPosition(b, dt, list) {
       b.vx = Math.cos(b.heading) * b.speed;
       b.vy = Math.sin(b.heading) * b.speed;
       b.direction = b.vx > 0 ? -1 : 1;
+      b.lastFlipX = b.x;
       b.isWaiting = false;
     }
     return;
@@ -332,9 +339,17 @@ function updateButterflyPosition(b, dt, list) {
   const bob = Math.sin(b.bobbingPhase) * 1.8 + Math.sin(b.bobbingPhase2 * 1.7) * 1.0;
   b.y += bob * f * 0.3;
 
-  // Update direction for sprite flipping
-  if (Math.abs(b.vx) > 0.2) {
-    b.direction = b.vx > 0 ? -1 : 1;
+  // Update direction for sprite flipping. Require a minimum horizontal
+  // distance traveled since the last flip before flipping again — otherwise
+  // heading jitter near-vertical movement causes vx to hover around 0 and
+  // the sprite flaps back and forth every frame ("spazzing").
+  const desiredDirection = b.vx > 0 ? -1 : 1;
+  if (Math.abs(b.vx) > 0.2 && desiredDirection !== b.direction) {
+    const MIN_FLIP_DISTANCE = 30;
+    if (Math.abs(b.x - b.lastFlipX) >= MIN_FLIP_DISTANCE) {
+      b.direction = desiredDirection;
+      b.lastFlipX = b.x;
+    }
   }
 
   // Bottom boundary — reserved for landing zone, butterflies don't enter it

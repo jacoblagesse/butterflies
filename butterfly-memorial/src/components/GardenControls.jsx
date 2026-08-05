@@ -352,8 +352,14 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
         `}
       </style>
 
+      {onVolumeToggle && (
+        <VolumeButton
+          muted={muted}
+          onToggle={onVolumeToggle}
+          style={{ position: 'fixed', bottom: 24, left: 24, zIndex: 100 }}
+        />
+      )}
       <div className="garden-controls" style={{ zIndex: 21 }}>
-        {onVolumeToggle && <VolumeButton muted={muted} onToggle={onVolumeToggle} />}
         <button className="btn ghost" onClick={() => setOpen('list')}>
           View all butterflies
         </button>

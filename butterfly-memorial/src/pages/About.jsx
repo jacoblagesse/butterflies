@@ -3,41 +3,21 @@ import { Link } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import DobsonPhoto from '../assets/misc/dobson.jpg';
 import AboutFlowers from '../assets/backgrounds/about_flowers.png';
+import LogoUrl from '../assets/logos/logo.svg';
 import './spirit-butterfly.css';
 
 export default function About() {
   return (
     <PageLayout>
+      <Link
+        to="/"
+        className="brand"
+        style={{ position: 'fixed', top: 12, left: 16, zIndex: 50 }}
+      >
+        <img src={LogoUrl} alt="Butterfly Memorial logo" className="logo" />
+      </Link>
       <section style={{ flex: 1, padding: '40px 16px 60px' }}>
         <div style={{ maxWidth: '680px', margin: '0 auto', display: 'grid', gap: '24px' }}>
-
-          <div className="hero-card" style={{ padding: 'clamp(28px, 6vw, 48px)' }}>
-            <h2 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
-              fontWeight: 700,
-              color: 'var(--ink)',
-              margin: '0 0 1.2rem',
-            }}>
-              The Hope
-            </h2>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
-              We want these "gardens of celebration" to open hearts to connection, creating a space where love,
-              memory — and sometimes even laughter — combine to comfort tender hearts. They offer solace similar
-              to what's often felt at a loved one's resting place, but can be visited anytime.
-            </p>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
-              Sometimes, these personal gardens become places of gathering, where family and friends celebrate
-              the life of someone dearly loved. For others, they become private sanctuaries where they can feel
-              moments of connection that soften sorrow, mend the heart, and lift the spirit.
-            </p>
-            <img src={AboutFlowers} alt="" aria-hidden="true" className="landing-about-divider" />
-            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
-              We hope these gardens offer comfort in beautiful memories shared by family and friends as they
-              release butterflies in honor of a loved one. Each becomes its own sacred haven: a place of shared
-              love, remembrance, and peace.
-            </p>
-          </div>
 
           <div className="hero-card" style={{ padding: 'clamp(28px, 6vw, 48px)', overflow: 'hidden' }}>
             <img
@@ -79,6 +59,33 @@ export default function About() {
             <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
               This initiative is a heartwarming testament to a mother's love and her journey from pain to healing.
               We hope it offers some of the peace that we all seek.
+            </p>
+          </div>
+
+          <div className="hero-card" style={{ padding: 'clamp(28px, 6vw, 48px)' }}>
+            <h2 style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+              fontWeight: 700,
+              color: 'var(--ink)',
+              margin: '0 0 1.2rem',
+            }}>
+              The Hope
+            </h2>
+            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
+              We want these "gardens of celebration" to open hearts to connection, creating a space where love,
+              memory — and sometimes even laughter — combine to comfort tender hearts. They offer solace similar
+              to what's often felt at a loved one's resting place, but can be visited anytime.
+            </p>
+            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: '0 0 1rem' }}>
+              Sometimes, these personal gardens become places of gathering, where family and friends celebrate
+              the life of someone dearly loved. For others, they become private sanctuaries where they can feel
+              moments of connection that soften sorrow, mend the heart, and lift the spirit.
+            </p>
+            <img src={AboutFlowers} alt="" aria-hidden="true" className="landing-about-divider" />
+            <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
+              We hope these gardens offer comfort in beautiful memories shared by family and friends as they
+              release butterflies in honor of a loved one.
             </p>
           </div>
 

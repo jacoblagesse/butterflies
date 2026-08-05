@@ -74,7 +74,7 @@ export default function PageLayout({ children, centered = false, snap = false })
       {/* Header */}
       <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
       <Header onSignInClick={openSignIn} />
-      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, right: 24, zIndex: 100 }} />
+      <VolumeButton muted={muted} onToggle={toggleMute} style={{ position: "fixed", bottom: 24, left: 24, zIndex: 100 }} />
 
       {/* Content area */}
       <div
