@@ -13,8 +13,8 @@
   --muted:#6b6578;           /* gentle plum-grey */
   --accent:#9b8ec4;          /* soft lavender */
   --accent-2:#d4a9c7;        /* dusty rose */
-  --cta:#ee60a2;             /* logo heart pink */
-  --cta-hover:#d44b8e;       /* darker pink for hover */
+  --cta:#19b2ed;             /* button blue */
+  --cta-hover:#0f92c7;       /* darker blue for hover */
   --cta-ink:#ffffff;
   --card:rgba(255,255,253,0.82);  /* warm ivory glass */
   --card-solid:#fffdf9;
@@ -622,8 +622,10 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 
 .landing-hero-logo {
   /* floor (260px) keeps the logo legible on the narrowest phones;
-     ceiling (600px) prevents over-scaling on huge displays */
-  width: clamp(260px, 70vw, 600px);
+     ceiling (600px) prevents over-scaling on huge displays;
+     the 83vh term caps the rendered height (~30vh) on short/wide
+     viewports so the header can't grow past the top half of the screen */
+  width: clamp(260px, min(70vw, 83vh), 600px);
   height: auto;
   display: block;
   filter:
@@ -635,8 +637,10 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   font-family: 'Playfair Display', serif;
   font-style: italic;
   font-weight: 700;
-  font-size: clamp(0.765rem, 2.68vw, 1.76rem);
-  color: #4db1db;
+  /* vh term keeps the tagline from growing tall enough (with the logo)
+     to spill past the top 50% of the screen on short viewports */
+  font-size: clamp(0.765rem, min(2.68vw, 3.4vh), 1.76rem);
+  color: #037baa;
   margin: 0;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -842,7 +846,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
     min-height: calc(100dvh - 80px);
   }
   .landing-hero-tagline {
-    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    font-size: clamp(1.4rem, min(5vw, 4vh), 1.8rem);
     white-space: normal;
   }
   .landing-hero-main {

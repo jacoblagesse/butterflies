@@ -217,7 +217,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const stripeAppearance = {
     theme: 'stripe',
     variables: {
-      colorPrimary: '#ee60a2',
+      colorPrimary: '#19b2ed',
       colorBackground: '#ffffff',
       colorText: '#2c2836',
       colorDanger: '#c44040',
