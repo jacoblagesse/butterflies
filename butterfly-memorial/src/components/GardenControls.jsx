@@ -572,7 +572,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   );
 }
 
-function Panel({ open, onClose, title, stepLabel, children }) {
+export function Panel({ open, onClose, title, stepLabel, children }) {
   // Hide completely when not open to avoid dark overlay affecting the scene
   if (!open) return null;
 

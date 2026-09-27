@@ -193,6 +193,32 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* ===== Garden full-viewport stage ===== */
 .garden-stage { position: fixed; inset: 0; border-radius: 0; }
 
+/* Sits just left of the minimal header's user icon (top:12/right:12, 40px) */
+.garden-settings-btn {
+  position: fixed;
+  top: 12px;
+  right: 64px;
+  z-index: 21;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffffaa;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(6px);
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  transition: background 200ms ease, transform 120ms ease;
+  padding: 0;
+}
+.garden-settings-btn:hover {
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: scale(1.05);
+}
+
 .garden-controls { position: absolute; right: 24px; bottom: 25px; display: grid; gap: 10px; z-index: 21; align-items: end; }
 
 .volume-btn {

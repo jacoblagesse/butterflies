@@ -23,8 +23,11 @@ const fnConfig = isEmulator ? {} : { secrets: [stripeSecretKey] };
 // Input constraints — keep server-side so the client can't write oversized
 // or unexpected values into world-readable documents.
 const ALLOWED_COLORS = ["blue", "green", "orange", "pink", "purple", "yellow"];
+const ALLOWED_STYLES = ["mountain", "tropical", "lake", "desert", "japanese garden", "flowers"];
 const MAX_GIFTER_LEN = 80;
 const MAX_MESSAGE_LEN = 500;
+const MAX_NAME_LEN = 80;
+const MAX_DATES_LEN = 40;
 
 // Confirm the authenticated caller owns the referenced garden. Returns the
 // garden snapshot data on success, throws otherwise.
@@ -224,5 +227,80 @@ exports.createInitialButterfly = onCall(
     });
 
     return { butterflyId: butterflyRef.id };
+  }
+);
+
+// Lets the garden owner edit garden + honoree info after creation. Honoree
+// docs deny client updates in Firestore rules (no owner field of their own),
+// so this runs server-side and derives ownership through the garden's
+// `user` reference instead.
+exports.updateGardenInfo = onCall(
+  {},
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const { gardenId, name, style, honoree } = request.data;
+    if (!gardenId) {
+      throw new HttpsError("invalid-argument", "gardenId is required.");
+    }
+
+    const garden = await assertGardenOwner(gardenId, uid);
+
+    const gardenUpdates = {};
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim() || name.length > MAX_NAME_LEN) {
+        throw new HttpsError("invalid-argument", "Invalid garden name.");
+      }
+      gardenUpdates.name = name.trim();
+    }
+    if (style !== undefined) {
+      if (!ALLOWED_STYLES.includes(style)) {
+        throw new HttpsError("invalid-argument", "Invalid style.");
+      }
+      gardenUpdates.style = style;
+    }
+    if (Object.keys(gardenUpdates).length > 0) {
+      await db.doc(`gardens/${gardenId}`).update(gardenUpdates);
+    }
+
+    if (honoree && typeof honoree === "object") {
+      const { first_name, last_name, dates, obit } = honoree;
+      const honoreeUpdates = {};
+      if (first_name !== undefined) {
+        if (typeof first_name !== "string" || !first_name.trim() || first_name.length > MAX_NAME_LEN) {
+          throw new HttpsError("invalid-argument", "Invalid first name.");
+        }
+        honoreeUpdates.first_name = first_name.trim();
+      }
+      if (last_name !== undefined) {
+        if (typeof last_name !== "string" || last_name.length > MAX_NAME_LEN) {
+          throw new HttpsError("invalid-argument", "Invalid last name.");
+        }
+        honoreeUpdates.last_name = last_name.trim();
+      }
+      if (dates !== undefined) {
+        if (typeof dates !== "string" || dates.length > MAX_DATES_LEN) {
+          throw new HttpsError("invalid-argument", "Invalid dates.");
+        }
+        honoreeUpdates.dates = dates.trim();
+      }
+      if (obit !== undefined) {
+        if (typeof obit !== "string" || obit.length > MAX_MESSAGE_LEN) {
+          throw new HttpsError("invalid-argument", "Dedication is too long.");
+        }
+        honoreeUpdates.obit = obit.trim();
+      }
+      if (Object.keys(honoreeUpdates).length > 0) {
+        if (!garden.honoree) {
+          throw new HttpsError("failed-precondition", "Garden has no honoree.");
+        }
+        await garden.honoree.update(honoreeUpdates);
+      }
+    }
+
+    return { success: true };
   }
 );

@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
 import GardenControls from "../components/GardenControls";
+import GardenSettings from "../components/GardenSettings";
 import FlyingButterfly from "../components/FlyingButterfly";
 import VideoBackground from "../components/VideoBackground";
 import DevRibbon from "../components/DevRibbon";
@@ -127,6 +128,8 @@ export default function Garden() {
     );
   }
 
+  const isOwner = !!(user && garden.user && garden.user.id === user.uid);
+
   return (
     <div className="page full-page" style={{ position: "relative" }}>
       <VideoBackground backgroundKey={garden.style || "flowers"} />
@@ -135,6 +138,16 @@ export default function Garden() {
       <div className="wrap full-wrap" style={{ padding: 0 }}>
         <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
         <Header onSignInClick={() => setAuthOpen(true)} variant="minimal" />
+        <GardenSettings
+          garden={garden}
+          honoree={honoree}
+          gardenId={gardenId}
+          isOwner={isOwner}
+          onSaved={({ garden: g, honoree: h }) => {
+            setGarden(g);
+            setHonoree(h);
+          }}
+        />
 
         <main className="garden-stage">
           <div ref={stageRef} className="garden">
