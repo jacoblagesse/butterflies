@@ -46,7 +46,11 @@ export default function FlyingButterfly({
         position: "absolute",
         left: x,
         top: y + (bobbingOffset ? Math.sin(bobbingOffset) * 5 : 0),
-        transform: `scale(${size}) scaleX(${direction})`,
+        // translate(-50%,-50%) first so (x,y) is the sprite's visual center,
+        // not its top-left corner — the scale below doesn't move that
+        // center point since it's a percentage of the element's own
+        // (unscaled) box, resolved independent of the scale factor.
+        transform: `translate(-50%, -50%) scale(${size}) scaleX(${direction})`,
         pointerEvents: "auto", // enable hover
         zIndex: Math.round(size * 100),
       }}

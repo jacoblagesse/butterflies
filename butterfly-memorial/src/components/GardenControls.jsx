@@ -113,6 +113,15 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [step1Error, setStep1Error] = useState('');
   const [step2Error, setStep2Error] = useState('');
   const hatchFireRef = useRef(false);
+  // { [color]: Promise<durationMs> } — kicked off as soon as a color is
+  // picked (step 1) so the multi-megabyte gif is already fetched and its
+  // duration known by the time the user reaches "Release" a couple of steps
+  // later. Without this, computing the duration at play-time (inside the
+  // <img> onLoad handler) adds the fetch+parse latency of a ~7-13MB file on
+  // top of the real duration before the fade-out timer is even scheduled —
+  // long enough that the gif visibly loops back to frame 1 and starts
+  // replaying before the overlay swaps it out.
+  const chrysalisDurationsRef = useRef({});
 
   // Load chrysalis gifs: src/assets/chrysalis/chrysalis-<color>.gif
   const [chrysalisMap, setChrysalisMap] = useState({});
@@ -133,6 +142,17 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       setChrysalisMap({});
     }
   }, []);
+
+  // Prefetch the selected color's chrysalis gif (and compute its real
+  // duration) as soon as it's chosen, well ahead of the "Release" click.
+  useEffect(() => {
+    if (!selectedColor) return;
+    const colorKey = selectedColor.toLowerCase();
+    if (chrysalisDurationsRef.current[colorKey]) return; // already fetching/fetched
+    const src = chrysalisMap[colorKey];
+    if (!src) return;
+    chrysalisDurationsRef.current[colorKey] = getGifDurationMs(src);
+  }, [selectedColor, chrysalisMap]);
 
   useEffect(() => {
     try {
@@ -301,7 +321,15 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             onLoad={async () => {
               if (hatchFireRef.current) return;
               hatchFireRef.current = true;
-              const duration = await getGifDurationMs(hatchSrc);
+              // Use the prefetched duration if step 1 already kicked it off
+              // (the common case) — awaiting an already-settled promise
+              // costs a microtask, not a fresh multi-megabyte fetch. Only
+              // fetch fresh here if nothing was prefetched (e.g. the
+              // no-chrysalis fallback gif).
+              const colorKey = selectedColor ? selectedColor.toLowerCase() : null;
+              const durationPromise = (colorKey && chrysalisDurationsRef.current[colorKey])
+                || getGifDurationMs(hatchSrc);
+              const duration = await durationPromise;
               setTimeout(() => {
                 // Swap to transparent pixel so the GIF doesn't loop during fade
                 setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
