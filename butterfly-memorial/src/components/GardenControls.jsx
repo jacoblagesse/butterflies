@@ -83,14 +83,18 @@ async function getGifFrameDelaysMs(src) {
   }
 }
 
-// Play the chrysalis gif's complete natural loop (its full, exact runtime —
-// summing every frame's real delay, not an estimate) and reveal the real
-// butterfly right as it finishes, rather than cutting away mid-animation.
+// The gif's own frame delays sum to ~14.5-14.6s, but browsers add a little
+// per-frame compositing overhead on top of the nominal delay — across
+// 42-43 frames that's enough to visibly run past the real animation and
+// loop a bit before the fade kicks in. Capping the cutoff below the summed
+// total accounts for that overhead.
+const CUTOFF_CAP_MS = 14000;
+
 function computeCutoffMs(delaysMs) {
   if (!delaysMs.length) return 5000; // parsing failed — safe fallback
   let total = 0;
   for (const d of delaysMs) total += d;
-  return total;
+  return Math.min(total, CUTOFF_CAP_MS);
 }
 
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange }) {
@@ -336,13 +340,25 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
               const cutoffPromise = (colorKey && chrysalisCutoffsRef.current[colorKey])
                 || getGifFrameDelaysMs(hatchSrc).then(computeCutoffMs);
               const cutoffMs = await cutoffPromise;
-              // Reveal the real butterfly right as the chrysalis animation
-              // completes its full natural loop — see computeCutoffMs.
+
+              // Reveal the real butterfly a moment before the chrysalis
+              // itself starts fading — it's still rendered underneath the
+              // (higher z-index) chrysalis overlay at that point, so it's
+              // invisible until the overlay actually fades, but it's
+              // already there, positioned and settled, the instant it does.
+              // That removes any pop-in gap between the chrysalis
+              // disappearing and the real butterfly appearing. The fade
+              // below still triggers at the exact, full natural duration —
+              // this just runs slightly ahead of it, not instead of it.
+              const revealHeadStartMs = 200;
+              setTimeout(() => {
+                onPendingChange?.(null);
+              }, Math.max(0, cutoffMs - revealHeadStartMs));
+
               setTimeout(() => {
                 // Swap to transparent pixel so the GIF doesn't loop during fade
                 setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
                 setHatchFading(true);
-                onPendingChange?.(null);
                 setTimeout(() => {
                   setHatchPlaying(false);
                   setHatchFading(false);
