@@ -1,10 +1,137 @@
 import { useEffect, useRef, useState } from "react";
 
+// Builds a fresh physics state for one butterfly. Only called for entries
+// that don't already have state — existing butterflies are left untouched
+// (see the init effect below) so the whole scene doesn't reshuffle every
+// time the `butterflies` array changes (e.g. someone else buys one).
+function buildInitialState(b, id, width, height, isCenterSpawn) {
+  // Each butterfly gets a "cruising altitude" biased toward the upper
+  // portion of the scene. Lower ratio = higher in the sky.
+  // Range 0.03–0.53 — some butterflies hover near the very top of
+  // the scene, others cruise around the middle.
+  const preferredYRatio = 0.03 + Math.random() * 0.5;
+  const speed = 0.8 + Math.random() * 0.8; // base speed
+  const imageIndex = Math.floor(Math.random() * 3);
+  const pinned = !!b.pinned;
+
+  // All butterflies spawn off-screen and fly inward. Anti-clump comes
+  // from staggered timing: ~half enter immediately from an edge, the
+  // other half are held off-screen briefly and trickle in over the
+  // first ~10 seconds via the regular respawn path.
+  // Pinned butterflies (garden's purchased + spirit butterfly) skip
+  // the delay so they're always present in the scene.
+  const spawnMode = pinned ? "edge" : (Math.random() < 0.5 ? "edge" : "delayed");
+
+  let x, y, heading;
+  let isWaiting = false;
+  let nextSpawnTime = 0;
+
+  if (isCenterSpawn) {
+    x = width / 2;
+    y = height / 2;
+    // Face and fly left, same as an edge butterfly entering from the
+    // right — small jitter so it doesn't look mechanically dead-on.
+    heading = Math.PI + (Math.random() - 0.5) * 0.6;
+  } else if (spawnMode === "edge") {
+    const startFromLeft = Math.random() > 0.5;
+    y = preferredYRatio * height + (Math.random() - 0.5) * 120;
+    if (startFromLeft) {
+      x = -(100 + Math.random() * 200);
+      heading = (Math.random() - 0.5) * 0.6;
+    } else {
+      x = width + (100 + Math.random() * 200);
+      heading = Math.PI + (Math.random() - 0.5) * 0.6;
+    }
+  } else {
+    // Held off-screen; the respawn loop will pick them up shortly.
+    x = -10000;
+    y = -10000;
+    heading = 0;
+    isWaiting = true;
+    nextSpawnTime = Date.now() + Math.random() * 10000;
+  }
+
+  return {
+    id,
+    label: b.color === "white"
+      ? `${b.gifter || b.from || "Garden"}'s butterfly`
+      : `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
+    x,
+    y,
+    // Heading-based movement for smooth curves
+    heading,
+    speed,
+    baseSpeed: speed,
+    turnRate: 0, // current angular velocity
+    // Derived for rendering
+    vx: Math.cos(heading) * speed,
+    vy: Math.sin(heading) * speed,
+    // Entrance emphasis: the just-released butterfly pops in at ~1.5x its
+    // normal depth-based size and eases back down to normal over a couple
+    // seconds (see the decay in updateButterflyPosition). Everyone else is
+    // just 1 (no boost).
+    sizeBoost: isCenterSpawn ? 1.5 : 1,
+    size: calculateSize(y, height) * (isCenterSpawn ? 1.5 : 1),
+    imageIndex,
+    direction: isCenterSpawn ? 1 : (Math.cos(heading) > 0 ? -1 : 1),
+    // x position where the sprite last flipped facing direction — used
+    // to require a minimum horizontal travel before flipping again,
+    // so small heading jitter near-vertical headings doesn't cause
+    // the sprite to flap back and forth every frame.
+    lastFlipX: x,
+    // Landing state
+    isLanded: false,
+    isLanding: false,
+    isTakingOff: false,
+    landUntil: 0,
+    targetLandY: 0,
+    takeoffStartY: 0,
+    takeoffProgress: 0,
+    landingProgress: 0,
+    // Respawn
+    isWaiting,
+    nextSpawnTime,
+    // Organic motion
+    bobbingPhase: Math.random() * Math.PI * 2,
+    bobbingPhase2: Math.random() * Math.PI * 2,
+    bobbingSpeed: 0.04 + Math.random() * 0.02,
+    // Per-butterfly preferred altitude (0–1, lower = higher in sky)
+    preferredYRatio,
+    // Wandering — slow random steering
+    wanderAngle: 0,
+    wanderSpeed: 0.3 + Math.random() * 0.4, // how fast wander target drifts
+    // Flutter bursts. The center-spawned butterfly is frozen (see garden.jsx)
+    // until the chrysalis reveal, so scheduling its first burst for "now"
+    // means it fires on the very first unfrozen frame — it starts fluttering
+    // immediately instead of drifting calmly for a few seconds first.
+    nextFlutterTime: isCenterSpawn ? Date.now() : Date.now() + 2000 + Math.random() * 8000,
+    flutterUntil: 0,
+    // Container
+    width,
+    height,
+    color: b.color || null,
+    // Pinned butterflies (garden's spirit + purchased) never leave the
+    // viewport once they've flown in — see the flight loop below.
+    pinned,
+    hasEnteredView: false,
+    // Pooled butterflies are excluded from the visible scene because
+    // we're at the maxOnScreen cap. They sit at (-10000, -10000) and
+    // are rotated in when an active unpinned butterfly leaves the
+    // screen. See partitioning below.
+    isPooled: false,
+    raw: b,
+  };
+}
+
 export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnScreen = Infinity, centerSpawnId = null) {
   const butterfliesStateRef = useRef([]);
   const [, setTick] = useState(0);
 
-  // Initialize butterfly states
+  // Merge in new butterflies / drop removed ones, without touching the
+  // physics state of anything already present — so the whole scene doesn't
+  // reshuffle (position, heading, pooled/active status, everything) every
+  // time the `butterflies` array changes, e.g. because someone else just
+  // bought a butterfly while you're mid-purchase yourself.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -12,149 +139,55 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
-    butterfliesStateRef.current = butterflies.map((b, i) => {
-      // Each butterfly gets a "cruising altitude" biased toward the upper
-      // portion of the scene. Lower ratio = higher in the sky.
-      // Range 0.03–0.53 — some butterflies hover near the very top of
-      // the scene, others cruise around the middle.
-      const preferredYRatio = 0.03 + Math.random() * 0.5;
-      const speed = 0.8 + Math.random() * 0.8; // base speed
-      const imageIndex = Math.floor(Math.random() * 3);
-      const pinned = !!b.pinned;
+    const existingById = new Map(butterfliesStateRef.current.map((b) => [b.id, b]));
+    const newIds = new Set();
+
+    const next = butterflies.map((b, i) => {
       const id = b.id || i;
-
-      // The butterfly just released by this viewer (revealed the moment the
-      // chrysalis overlay closes) starts from the center of the screen
-      // instead of flying in from an edge like the ambient ones.
-      const isCenterSpawn = centerSpawnId != null && id === centerSpawnId;
-
-      // All butterflies spawn off-screen and fly inward. Anti-clump comes
-      // from staggered timing: ~half enter immediately from an edge, the
-      // other half are held off-screen briefly and trickle in over the
-      // first ~10 seconds via the regular respawn path.
-      // Pinned butterflies (garden's purchased + spirit butterfly) skip
-      // the delay so they're always present in the scene.
-      const spawnMode = pinned ? "edge" : (Math.random() < 0.5 ? "edge" : "delayed");
-
-      let x, y, heading;
-      let isWaiting = false;
-      let nextSpawnTime = 0;
-
-      if (isCenterSpawn) {
-        x = width / 2;
-        y = height / 2;
-        // Face and fly left, same as an edge butterfly entering from the
-        // right — small jitter so it doesn't look mechanically dead-on.
-        heading = Math.PI + (Math.random() - 0.5) * 0.6;
-      } else if (spawnMode === "edge") {
-        const startFromLeft = Math.random() > 0.5;
-        y = preferredYRatio * height + (Math.random() - 0.5) * 120;
-        if (startFromLeft) {
-          x = -(100 + Math.random() * 200);
-          heading = (Math.random() - 0.5) * 0.6;
-        } else {
-          x = width + (100 + Math.random() * 200);
-          heading = Math.PI + (Math.random() - 0.5) * 0.6;
-        }
-      } else {
-        // Held off-screen; the respawn loop will pick them up shortly.
-        x = -10000;
-        y = -10000;
-        heading = 0;
-        isWaiting = true;
-        nextSpawnTime = Date.now() + Math.random() * 10000;
+      const prior = existingById.get(id);
+      if (prior) {
+        prior.raw = b; // keep display-only fields in sync; physics state untouched
+        return prior;
       }
-
-      return {
-        id,
-        label: b.color === "white"
-          ? `${b.gifter || b.from || "Garden"}'s butterfly`
-          : `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
-        x,
-        y,
-        // Heading-based movement for smooth curves
-        heading,
-        speed,
-        baseSpeed: speed,
-        turnRate: 0, // current angular velocity
-        // Derived for rendering
-        vx: Math.cos(heading) * speed,
-        vy: Math.sin(heading) * speed,
-        size: calculateSize(y, height),
-        imageIndex,
-        direction: Math.cos(heading) > 0 ? -1 : 1,
-        // x position where the sprite last flipped facing direction — used
-        // to require a minimum horizontal travel before flipping again,
-        // so small heading jitter near-vertical headings doesn't cause
-        // the sprite to flap back and forth every frame.
-        lastFlipX: x,
-        // Landing state
-        isLanded: false,
-        isLanding: false,
-        isTakingOff: false,
-        landUntil: 0,
-        targetLandY: 0,
-        takeoffStartY: 0,
-        takeoffProgress: 0,
-        landingProgress: 0,
-        // Respawn
-        isWaiting,
-        nextSpawnTime,
-        // Organic motion
-        bobbingPhase: Math.random() * Math.PI * 2,
-        bobbingPhase2: Math.random() * Math.PI * 2,
-        bobbingSpeed: 0.04 + Math.random() * 0.02,
-        // Per-butterfly preferred altitude (0–1, lower = higher in sky)
-        preferredYRatio,
-        // Wandering — slow random steering
-        wanderAngle: 0,
-        wanderSpeed: 0.3 + Math.random() * 0.4, // how fast wander target drifts
-        // Flutter bursts
-        nextFlutterTime: Date.now() + 2000 + Math.random() * 8000,
-        flutterUntil: 0,
-        // Container
-        width,
-        height,
-        color: b.color || null,
-        // Pinned butterflies (garden's spirit + purchased) never leave the
-        // viewport once they've flown in — see the flight loop below.
-        pinned,
-        hasEnteredView: false,
-        // Pooled butterflies are excluded from the visible scene because
-        // we're at the maxOnScreen cap. They sit at (-10000, -10000) and
-        // are rotated in when an active unpinned butterfly leaves the
-        // screen. See partitioning below.
-        isPooled: false,
-        raw: b,
-      };
+      newIds.add(id);
+      const isCenterSpawn = centerSpawnId != null && id === centerSpawnId;
+      return buildInitialState(b, id, width, height, isCenterSpawn);
     });
 
+    butterfliesStateRef.current = next;
+
     // Cap: pinned butterflies always stay; unpinned compete for the
-    // remaining slots. Excess unpinned ones are sent to the pool.
-    const all = butterfliesStateRef.current;
-    const pinnedCount = all.reduce((n, b) => n + (b.pinned ? 1 : 0), 0);
-    const unpinnedSlots = Math.max(0, maxOnScreen - pinnedCount);
-    const unpinned = all.filter((b) => !b.pinned);
-    if (unpinned.length > unpinnedSlots) {
-      // Random selection so it's not always the first N
-      const shuffled = [...unpinned].sort(() => Math.random() - 0.5);
-      const toPool = shuffled.slice(unpinnedSlots);
-      for (const b of toPool) {
-        b.isPooled = true;
-        b.isWaiting = true;
-        b.x = -10000;
-        b.y = -10000;
-        b.nextSpawnTime = 0; // ignored while isPooled is true
+    // remaining slots. Only brand-new unpinned entries need a pool/active
+    // decision — existing ones keep whatever pooled/active status they
+    // already had (counted from the pre-merge state, since the freshly
+    // built new entries default to "active" until this decides otherwise).
+    if (newIds.size > 0) {
+      const priorValues = [...existingById.values()];
+      const pinnedCount = next.reduce((n, b) => n + (b.pinned ? 1 : 0), 0);
+      const activeUnpinnedCount = priorValues.reduce((n, b) => n + (!b.pinned && !b.isPooled ? 1 : 0), 0);
+      let unpinnedSlotsLeft = Math.max(0, maxOnScreen - pinnedCount - activeUnpinnedCount);
+
+      const newUnpinned = next.filter((b) => !b.pinned && newIds.has(b.id));
+      // Random order so it's not always the most-recently-added that gets pooled
+      const shuffled = [...newUnpinned].sort(() => Math.random() - 0.5);
+      for (const b of shuffled) {
+        if (unpinnedSlotsLeft > 0) {
+          unpinnedSlotsLeft -= 1;
+        } else {
+          b.isPooled = true;
+          b.isWaiting = true;
+          b.x = -10000;
+          b.y = -10000;
+          b.nextSpawnTime = 0; // ignored while isPooled is true
+        }
       }
     }
 
     setTick((t) => t + 1);
-    // centerSpawnId is intentionally not a dependency here: this effect does
-    // a full reinit of every butterfly, and centerSpawnId gets cleared back
-    // to null the moment the just-purchased butterfly is revealed — if that
-    // clear reran this effect, it would reshuffle everyone (including
-    // resetting the just-revealed butterfly off its centered spot). The
-    // effect below handles centerSpawnId on its own, surgically.
+    // centerSpawnId is intentionally not a dependency: it's only consulted
+    // above when a butterfly is first being constructed. Clearing it back to
+    // null on reveal shouldn't (and, since existing entries are preserved
+    // untouched, doesn't) perturb anything.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [butterflies, containerRef.current, maxOnScreen]);
 
@@ -185,6 +218,10 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
     target.isLanded = false;
     target.isLanding = false;
     target.isTakingOff = false;
+    target.sizeBoost = 1.5;
+    target.size = calculateSize(target.y, height) * 1.5;
+    target.nextFlutterTime = Date.now(); // flutter immediately once unfrozen
+    target.flutterUntil = 0;
     setTick((t) => t + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerSpawnId, containerRef.current]);
@@ -436,8 +473,13 @@ function updateButterflyPosition(b, dt, list) {
     }
   }
 
-  // Depth-based size
-  b.size = calculateSize(b.y, b.height);
+  // Depth-based size, eased by any entrance size boost (starts at 1.5 for a
+  // just-released butterfly and decays to 1 over a couple of seconds).
+  if (b.sizeBoost !== 1) {
+    b.sizeBoost += (1 - b.sizeBoost) * 0.01 * f;
+    if (Math.abs(b.sizeBoost - 1) < 0.01) b.sizeBoost = 1;
+  }
+  b.size = calculateSize(b.y, b.height) * b.sizeBoost;
 
   // Random landing chance in lower half
   const bottomThreshold = b.height * 0.5;

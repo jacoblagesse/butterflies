@@ -9,19 +9,16 @@ import ButterflyColorChanger from '../assets/logos/butterfly.png';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-// Parse total GIF duration by properly walking the block structure (header +
-// logical screen descriptor + optional global color table, then extension /
-// image blocks up to the trailer) and summing each Graphic Control
-// Extension's delay time.
-//
-// A naive raw-byte scan for the 0x21 0xF9 0x04 signature (the previous
-// approach) can false-positive inside compressed image data — large GIFs
-// have enough LZW-encoded bytes that this pattern turns up by chance, and
-// the two bytes read as "delay" after a false match inflate the total. That
-// was invisible on the ~6.7MB chrysalis GIFs but showed up as a ~5s overshoot
-// on the re-exported ~13MB blue one. Walking the real block structure (via
-// documented sub-block lengths) can't be fooled by pixel data.
-async function getGifDurationMs(src) {
+// Parse every frame's delay time (ms) by properly walking the GIF block
+// structure (header + logical screen descriptor + optional global color
+// table, then extension / image blocks up to the trailer) rather than
+// scanning raw bytes for the Graphic Control Extension's 0x21 0xF9 0x04
+// signature. A raw scan can false-positive on that exact 3-byte sequence
+// turning up by chance inside compressed image data — large GIFs have
+// enough LZW-encoded bytes for this to happen, and the two bytes read as
+// "delay" after a false match corrupt the result. Walking the real block
+// structure (via documented sub-block lengths) can't be fooled by pixel data.
+async function getGifFrameDelaysMs(src) {
   try {
     const resp = await fetch(src);
     const buf = await resp.arrayBuffer();
@@ -48,7 +45,7 @@ async function getGifDurationMs(src) {
       return idx;
     };
 
-    let totalCs = 0;
+    const delaysMs = [];
     while (i < bytes.length) {
       const marker = bytes[i];
       if (marker === 0x21) {
@@ -59,7 +56,7 @@ async function getGifDurationMs(src) {
           const blockSize = bytes[i + 2];
           // Delay time is the 2nd/3rd data byte (LE), right after the
           // packed-fields byte.
-          totalCs += bytes[i + 4] | (bytes[i + 5] << 8);
+          delaysMs.push((bytes[i + 4] | (bytes[i + 5] << 8)) * 10);
           i = i + 3 + blockSize + 1; // introducer+label+sizebyte + data + terminator
         } else {
           i += 2; // past introducer + label
@@ -80,10 +77,31 @@ async function getGifDurationMs(src) {
       }
     }
 
-    return totalCs > 0 ? totalCs * 10 : 5000;
+    return delaysMs;
   } catch {
-    return 5000;
+    return [];
   }
+}
+
+// The chrysalis gifs are a hand-timed sequence: hang → crack open → wings
+// spread wide in a held "reveal" pose → wings fold back down into a calm
+// perched flutter → branch fades to just the butterfly. The reveal pose is
+// frame 24 (0-indexed) and — unlike the ~100ms in-between frames — it's held
+// for a full 2 seconds, confirmed identical across every recolored export
+// (blue/green/etc. share frame-for-frame timing through at least frame 41).
+// That hold is the natural high point to cut away to the real butterfly:
+// cutting any earlier misses the payoff, any later and the wings have
+// visibly started folding back down.
+const EMERGENCE_PEAK_FRAME = 24; // 0-indexed
+const PEAK_HOLD_BUFFER_MS = 400; // beat on the peak pose before cutting away
+
+function computeCutoffMs(delaysMs) {
+  if (!delaysMs.length) return 2500; // parsing failed — safe short fallback
+  const peakIndex = Math.min(EMERGENCE_PEAK_FRAME, delaysMs.length - 1);
+  let cumulative = 0;
+  for (let i = 0; i < peakIndex; i++) cumulative += delaysMs[i];
+  const holdMs = delaysMs[peakIndex] || 0;
+  return cumulative + Math.min(PEAK_HOLD_BUFFER_MS, holdMs);
 }
 
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange }) {
@@ -113,15 +131,14 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [step1Error, setStep1Error] = useState('');
   const [step2Error, setStep2Error] = useState('');
   const hatchFireRef = useRef(false);
-  // { [color]: Promise<durationMs> } — kicked off as soon as a color is
-  // picked (step 1) so the multi-megabyte gif is already fetched and its
-  // duration known by the time the user reaches "Release" a couple of steps
-  // later. Without this, computing the duration at play-time (inside the
-  // <img> onLoad handler) adds the fetch+parse latency of a ~7-13MB file on
-  // top of the real duration before the fade-out timer is even scheduled —
-  // long enough that the gif visibly loops back to frame 1 and starts
-  // replaying before the overlay swaps it out.
-  const chrysalisDurationsRef = useRef({});
+  // { [color]: Promise<cutoffMs> } — kicked off as soon as a color is picked
+  // (step 1) so the multi-megabyte gif is already fetched and its cutoff
+  // point (see computeCutoffMs) known by the time the user reaches "Release"
+  // a couple of steps later. Without this, parsing frame timing at play-time
+  // (inside the <img> onLoad handler) adds the fetch+parse latency of a
+  // ~7-13MB file on top of the real cutoff before the fade-out timer is even
+  // scheduled.
+  const chrysalisCutoffsRef = useRef({});
 
   // Load chrysalis gifs: src/assets/chrysalis/chrysalis-<color>.gif
   const [chrysalisMap, setChrysalisMap] = useState({});
@@ -143,15 +160,15 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
     }
   }, []);
 
-  // Prefetch the selected color's chrysalis gif (and compute its real
-  // duration) as soon as it's chosen, well ahead of the "Release" click.
+  // Prefetch the selected color's chrysalis gif (and compute its cutoff
+  // point) as soon as it's chosen, well ahead of the "Release" click.
   useEffect(() => {
     if (!selectedColor) return;
     const colorKey = selectedColor.toLowerCase();
-    if (chrysalisDurationsRef.current[colorKey]) return; // already fetching/fetched
+    if (chrysalisCutoffsRef.current[colorKey]) return; // already fetching/fetched
     const src = chrysalisMap[colorKey];
     if (!src) return;
-    chrysalisDurationsRef.current[colorKey] = getGifDurationMs(src);
+    chrysalisCutoffsRef.current[colorKey] = getGifFrameDelaysMs(src).then(computeCutoffMs);
   }, [selectedColor, chrysalisMap]);
 
   useEffect(() => {
@@ -321,15 +338,18 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
             onLoad={async () => {
               if (hatchFireRef.current) return;
               hatchFireRef.current = true;
-              // Use the prefetched duration if step 1 already kicked it off
+              // Use the prefetched cutoff if step 1 already kicked it off
               // (the common case) — awaiting an already-settled promise
               // costs a microtask, not a fresh multi-megabyte fetch. Only
               // fetch fresh here if nothing was prefetched (e.g. the
               // no-chrysalis fallback gif).
               const colorKey = selectedColor ? selectedColor.toLowerCase() : null;
-              const durationPromise = (colorKey && chrysalisDurationsRef.current[colorKey])
-                || getGifDurationMs(hatchSrc);
-              const duration = await durationPromise;
+              const cutoffPromise = (colorKey && chrysalisCutoffsRef.current[colorKey])
+                || getGifFrameDelaysMs(hatchSrc).then(computeCutoffMs);
+              const cutoffMs = await cutoffPromise;
+              // Reveal the real butterfly right as the chrysalis hits its
+              // held "wings fully spread" reveal pose, cutting away before
+              // it folds back down — see computeCutoffMs.
               setTimeout(() => {
                 // Swap to transparent pixel so the GIF doesn't loop during fade
                 setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
@@ -343,7 +363,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                   setMsg('');
                   setSelectedColor(null);
                 }, 350);
-              }, duration);
+              }, cutoffMs);
             }}
           />
         )}
