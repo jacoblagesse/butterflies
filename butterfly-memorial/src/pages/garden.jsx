@@ -40,10 +40,23 @@ export default function Garden() {
   // current viewer's purchases) always count toward the cap; excess
   // unpinned butterflies wait in a pool and rotate in when an active one
   // leaves the screen.
-  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef, 8);
+  const butterflyStates = useButterflyPhysics(butterflies, stageRef, frozenRef, 8, pendingButterflyId);
   const visibleStates = pendingButterflyId
     ? butterflyStates.filter((s) => s.id !== pendingButterflyId)
     : butterflyStates;
+
+  // The viewer's just-purchased butterfly is spawned centered (see
+  // useButterflyPhysics) and hidden via the filter above while the chrysalis
+  // overlay plays. Freeze it in place for that whole span so it's still
+  // exactly centered — not partway through a flight path — the moment it's
+  // revealed; unfreeze as soon as it's handed back to normal flight.
+  const handlePendingChange = (id) => {
+    setPendingButterflyId((prev) => {
+      if (id) frozenRef.current.add(id);
+      else if (prev) frozenRef.current.delete(prev);
+      return id;
+    });
+  };
 
   useEffect(() => {
     if (!gardenId) return;
@@ -304,7 +317,7 @@ export default function Garden() {
               </>
             )}
 
-            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={setPendingButterflyId} />
+            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={handlePendingChange} />
           </div>
         </main>
       </div>

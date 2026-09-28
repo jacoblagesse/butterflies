@@ -9,21 +9,77 @@ import ButterflyColorChanger from '../assets/logos/butterfly.png';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-// Parse total GIF duration by reading Graphic Control Extension blocks from binary
+// Parse total GIF duration by properly walking the block structure (header +
+// logical screen descriptor + optional global color table, then extension /
+// image blocks up to the trailer) and summing each Graphic Control
+// Extension's delay time.
+//
+// A naive raw-byte scan for the 0x21 0xF9 0x04 signature (the previous
+// approach) can false-positive inside compressed image data — large GIFs
+// have enough LZW-encoded bytes that this pattern turns up by chance, and
+// the two bytes read as "delay" after a false match inflate the total. That
+// was invisible on the ~6.7MB chrysalis GIFs but showed up as a ~5s overshoot
+// on the re-exported ~13MB blue one. Walking the real block structure (via
+// documented sub-block lengths) can't be fooled by pixel data.
 async function getGifDurationMs(src) {
   try {
     const resp = await fetch(src);
     const buf = await resp.arrayBuffer();
     const bytes = new Uint8Array(buf);
+
+    // Header (6 bytes: "GIF87a"/"GIF89a") + Logical Screen Descriptor (7
+    // bytes: width, height, packed fields, bg color index, pixel aspect).
+    const packed = bytes[10];
+    const hasGlobalColorTable = (packed & 0x80) !== 0;
+    let i = hasGlobalColorTable
+      ? 13 + 3 * (1 << ((packed & 0x07) + 1))
+      : 13;
+
+    // Sub-blocks are a series of [length byte][length bytes of data],
+    // terminated by a zero-length block. Used for extension data and image
+    // (LZW-compressed) data alike.
+    const skipSubBlocks = (idx) => {
+      while (idx < bytes.length) {
+        const len = bytes[idx];
+        idx += 1;
+        if (len === 0) break;
+        idx += len;
+      }
+      return idx;
+    };
+
     let totalCs = 0;
-    for (let i = 0; i < bytes.length - 5; i++) {
-      if (bytes[i] === 0x21 && bytes[i + 1] === 0xF9 && bytes[i + 2] === 0x04) {
-        // delay is 2 bytes little-endian at i+4, in centiseconds
-        const delay = bytes[i + 4] | (bytes[i + 5] << 8);
-        totalCs += delay;
-        i += 5;
+    while (i < bytes.length) {
+      const marker = bytes[i];
+      if (marker === 0x21) {
+        // Extension Introducer
+        const label = bytes[i + 1];
+        if (label === 0xF9) {
+          // Graphic Control Extension: 21 F9 <blockSize> <blockSize bytes> 00
+          const blockSize = bytes[i + 2];
+          // Delay time is the 2nd/3rd data byte (LE), right after the
+          // packed-fields byte.
+          totalCs += bytes[i + 4] | (bytes[i + 5] << 8);
+          i = i + 3 + blockSize + 1; // introducer+label+sizebyte + data + terminator
+        } else {
+          i += 2; // past introducer + label
+          i = skipSubBlocks(i);
+        }
+      } else if (marker === 0x2C) {
+        // Image Descriptor: 2C + left(2) + top(2) + width(2) + height(2) + packed(1)
+        const imgPacked = bytes[i + 9];
+        let idx = i + 10;
+        if (imgPacked & 0x80) {
+          idx += 3 * (1 << ((imgPacked & 0x07) + 1)); // local color table
+        }
+        idx += 1; // LZW minimum code size byte
+        i = skipSubBlocks(idx);
+      } else {
+        // Trailer (0x3B) or anything unexpected — stop parsing.
+        break;
       }
     }
+
     return totalCs > 0 ? totalCs * 10 : 5000;
   } catch {
     return 5000;
@@ -53,7 +109,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [hatchPlaying, setHatchPlaying] = useState(false);
   const [hatchFading, setHatchFading] = useState(false);
   const [hatchKey, setHatchKey] = useState(0); // force GIF remount each play
-  const [spawnVisible, setSpawnVisible] = useState(false); // show butterfly centered after hatch
   const [hatchSrc, setHatchSrc] = useState(hatchGif);
   const [step1Error, setStep1Error] = useState('');
   const [step2Error, setStep2Error] = useState('');
@@ -262,28 +317,6 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 }, 350);
               }, duration);
             }}
-          />
-        )}
-      </div>
-
-      {/* Centered spawn overlay after hatch */}
-      <div
-        className={`spawn-overlay ${spawnVisible ? 'open' : ''}`}
-        aria-hidden={!spawnVisible}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          display: spawnVisible ? 'grid' : 'none',
-          placeItems: 'center',
-          zIndex: 1002, // above everything
-          pointerEvents: 'none',
-        }}
-      >
-        {selectedColor && assets[selectedColor] && (
-          <img
-            src={assets[selectedColor].flying || assets[selectedColor].resting}
-            alt={`${selectedColor} butterfly`}
-            style={{ width: 120, height: 120 }}
           />
         )}
       </div>

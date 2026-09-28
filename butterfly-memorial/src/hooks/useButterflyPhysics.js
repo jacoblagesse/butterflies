@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnScreen = Infinity) {
+export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnScreen = Infinity, centerSpawnId = null) {
   const butterfliesStateRef = useRef([]);
   const [, setTick] = useState(0);
 
@@ -21,6 +21,12 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
       const speed = 0.8 + Math.random() * 0.8; // base speed
       const imageIndex = Math.floor(Math.random() * 3);
       const pinned = !!b.pinned;
+      const id = b.id || i;
+
+      // The butterfly just released by this viewer (revealed the moment the
+      // chrysalis overlay closes) starts from the center of the screen
+      // instead of flying in from an edge like the ambient ones.
+      const isCenterSpawn = centerSpawnId != null && id === centerSpawnId;
 
       // All butterflies spawn off-screen and fly inward. Anti-clump comes
       // from staggered timing: ~half enter immediately from an edge, the
@@ -34,7 +40,11 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
       let isWaiting = false;
       let nextSpawnTime = 0;
 
-      if (spawnMode === "edge") {
+      if (isCenterSpawn) {
+        x = width / 2;
+        y = height / 2;
+        heading = Math.random() * Math.PI * 2;
+      } else if (spawnMode === "edge") {
         const startFromLeft = Math.random() > 0.5;
         y = preferredYRatio * height + (Math.random() - 0.5) * 120;
         if (startFromLeft) {
@@ -54,7 +64,7 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
       }
 
       return {
-        id: b.id || i,
+        id,
         label: b.color === "white"
           ? `${b.gifter || b.from || "Garden"}'s butterfly`
           : `${b.gifter || b.from || "Someone"}: ${b.message || ""}`,
@@ -137,7 +147,7 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
     }
 
     setTick((t) => t + 1);
-  }, [butterflies, containerRef.current, maxOnScreen]);
+  }, [butterflies, containerRef.current, maxOnScreen, centerSpawnId]);
 
   // Animation loop
   useEffect(() => {
