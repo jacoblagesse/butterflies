@@ -12,7 +12,15 @@ function buildInitialState(b, id, width, height, isCenterSpawn) {
   const preferredYRatio = 0.03 + Math.random() * 0.5;
   const speed = 0.8 + Math.random() * 0.8; // base speed
   const imageIndex = Math.floor(Math.random() * 3);
-  const pinned = !!b.pinned;
+  // `b.pinned` is meant to be true for the current viewer's own purchases,
+  // but the butterfly doc never actually stores a uid to check that against
+  // (see garden.jsx) — isCenterSpawn is what actually identifies "this is
+  // the one I just released," so it forces pinned too. This matters beyond
+  // just the hard-wall/always-visible behavior below: the pool-vs-active cap
+  // (see the init effect) only ever pools *unpinned* entries, so without
+  // this the just-purchased butterfly could get silently pooled (hidden)
+  // any time the ambient scene already happened to be at the cap.
+  const pinned = !!b.pinned || isCenterSpawn;
 
   // All butterflies spawn off-screen and fly inward. Anti-clump comes
   // from staggered timing: ~half enter immediately from an edge, the
@@ -218,6 +226,13 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
     target.isLanded = false;
     target.isLanding = false;
     target.isTakingOff = false;
+    // If this entry was already built (and possibly pooled/hidden, since it
+    // wasn't known to be the center-spawn butterfly yet) before this id
+    // arrived, force it pinned + unpooled now so it's guaranteed active and
+    // visible rather than silently sitting hidden in the pool.
+    target.pinned = true;
+    target.isPooled = false;
+    target.hasEnteredView = false; // re-arm the pinned hard-wall check for its new position
     target.sizeBoost = 1.5;
     target.size = calculateSize(target.y, height) * 1.5;
     target.nextFlutterTime = Date.now(); // flutter immediately once unfrozen
