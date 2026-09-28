@@ -43,7 +43,9 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
       if (isCenterSpawn) {
         x = width / 2;
         y = height / 2;
-        heading = Math.random() * Math.PI * 2;
+        // Face and fly left, same as an edge butterfly entering from the
+        // right — small jitter so it doesn't look mechanically dead-on.
+        heading = Math.PI + (Math.random() - 0.5) * 0.6;
       } else if (spawnMode === "edge") {
         const startFromLeft = Math.random() > 0.5;
         y = preferredYRatio * height + (Math.random() - 0.5) * 120;
@@ -147,7 +149,45 @@ export function useButterflyPhysics(butterflies, containerRef, frozenRef, maxOnS
     }
 
     setTick((t) => t + 1);
-  }, [butterflies, containerRef.current, maxOnScreen, centerSpawnId]);
+    // centerSpawnId is intentionally not a dependency here: this effect does
+    // a full reinit of every butterfly, and centerSpawnId gets cleared back
+    // to null the moment the just-purchased butterfly is revealed — if that
+    // clear reran this effect, it would reshuffle everyone (including
+    // resetting the just-revealed butterfly off its centered spot). The
+    // effect below handles centerSpawnId on its own, surgically.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [butterflies, containerRef.current, maxOnScreen]);
+
+  // Re-center the just-purchased butterfly the moment its id is known, even
+  // if `butterflies` (and so the effect above) had already initialized it
+  // with a normal edge spawn before this id arrived — Firestore's realtime
+  // update and this component's own state update aren't ordering-guaranteed
+  // against each other. Only acts on centerSpawnId going non-null; clearing
+  // it back to null on reveal is a no-op here by design (see above).
+  useEffect(() => {
+    if (centerSpawnId == null) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const target = butterfliesStateRef.current.find((b) => b.id === centerSpawnId);
+    if (!target) return;
+
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
+    target.x = width / 2;
+    target.y = height / 2;
+    target.heading = Math.PI + (Math.random() - 0.5) * 0.6;
+    target.vx = Math.cos(target.heading) * target.speed;
+    target.vy = Math.sin(target.heading) * target.speed;
+    target.direction = 1; // facing left
+    target.lastFlipX = target.x;
+    target.isWaiting = false;
+    target.isLanded = false;
+    target.isLanding = false;
+    target.isTakingOff = false;
+    setTick((t) => t + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerSpawnId, containerRef.current]);
 
   // Animation loop
   useEffect(() => {
