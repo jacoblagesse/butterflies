@@ -83,25 +83,14 @@ async function getGifFrameDelaysMs(src) {
   }
 }
 
-// The chrysalis gifs are a hand-timed sequence: hang → crack open → wings
-// spread wide in a held "reveal" pose → wings fold back down into a calm
-// perched flutter → branch fades to just the butterfly. The reveal pose is
-// frame 24 (0-indexed) and — unlike the ~100ms in-between frames — it's held
-// for a full 2 seconds, confirmed identical across every recolored export
-// (blue/green/etc. share frame-for-frame timing through at least frame 41).
-// That hold is the natural high point to cut away to the real butterfly:
-// cutting any earlier misses the payoff, any later and the wings have
-// visibly started folding back down.
-const EMERGENCE_PEAK_FRAME = 24; // 0-indexed
-const PEAK_HOLD_BUFFER_MS = 400; // beat on the peak pose before cutting away
-
+// Play the chrysalis gif's complete natural loop (its full, exact runtime —
+// summing every frame's real delay, not an estimate) and reveal the real
+// butterfly right as it finishes, rather than cutting away mid-animation.
 function computeCutoffMs(delaysMs) {
-  if (!delaysMs.length) return 2500; // parsing failed — safe short fallback
-  const peakIndex = Math.min(EMERGENCE_PEAK_FRAME, delaysMs.length - 1);
-  let cumulative = 0;
-  for (let i = 0; i < peakIndex; i++) cumulative += delaysMs[i];
-  const holdMs = delaysMs[peakIndex] || 0;
-  return cumulative + Math.min(PEAK_HOLD_BUFFER_MS, holdMs);
+  if (!delaysMs.length) return 5000; // parsing failed — safe fallback
+  let total = 0;
+  for (const d of delaysMs) total += d;
+  return total;
 }
 
 export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange }) {
@@ -347,9 +336,8 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
               const cutoffPromise = (colorKey && chrysalisCutoffsRef.current[colorKey])
                 || getGifFrameDelaysMs(hatchSrc).then(computeCutoffMs);
               const cutoffMs = await cutoffPromise;
-              // Reveal the real butterfly right as the chrysalis hits its
-              // held "wings fully spread" reveal pose, cutting away before
-              // it folds back down — see computeCutoffMs.
+              // Reveal the real butterfly right as the chrysalis animation
+              // completes its full natural loop — see computeCutoffMs.
               setTimeout(() => {
                 // Swap to transparent pixel so the GIF doesn't loop during fade
                 setHatchSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
