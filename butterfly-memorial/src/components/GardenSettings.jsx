@@ -164,6 +164,7 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
                 type="checkbox"
                 checked={passwordProtected}
                 onChange={(e) => { setPasswordProtected(e.target.checked); setNewPassword(''); }}
+                style={{ width: 20, height: 20, cursor: 'pointer' }}
               />
               <span className="sub" style={{ margin: 0 }}>Password protect this garden</span>
             </label>
