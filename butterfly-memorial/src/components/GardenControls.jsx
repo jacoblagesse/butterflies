@@ -446,7 +446,7 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
       )}
       <div className="garden-controls" style={{ zIndex: 21 }}>
         <button className="btn ghost" onClick={() => setOpen('list')}>
-          View all butterflies
+          View all tributes
         </button>
         <button className="release-btn" onClick={() => setOpen('buy')}>
           <span className="release-label">Release a butterfly</span>
