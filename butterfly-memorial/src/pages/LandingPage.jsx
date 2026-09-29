@@ -100,7 +100,7 @@ export default function Landing() {
   const showLearnMore = nextSection !== null;
 
   return (
-    <PageLayout snap showFaqLink>
+    <PageLayout snap showFaqLink solidFooter>
       {/* ── Fixed nav buttons — portaled to body to escape stacking contexts ── */}
       {createPortal(
         <>

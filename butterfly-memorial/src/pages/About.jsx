@@ -96,7 +96,7 @@ export default function About() {
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <Link to="/faq" className="sub" style={{ textDecoration: 'underline' }}>
+            <Link to="/faq" className="btn primary" style={{ padding: '12px 28px', fontSize: '1rem' }}>
               FAQ
             </Link>
           </div>

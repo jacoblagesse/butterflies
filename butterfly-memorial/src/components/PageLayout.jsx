@@ -20,7 +20,7 @@ const AMBIENT_BUTTERFLIES = [
   { id: "amb-7", gifter: "", message: "", color: "white" },
 ];
 
-export default function PageLayout({ children, centered = false, snap = false, showFaqLink = false }) {
+export default function PageLayout({ children, centered = false, snap = false, showFaqLink = false, solidFooter = false }) {
   const [isAuthOpen, setAuthOpen] = useState(false);
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
@@ -100,11 +100,12 @@ export default function PageLayout({ children, centered = false, snap = false, s
 
       <footer
         className="page-footer"
-        style={
-          snap
+        style={{
+          ...(snap
             ? { position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 2 }
-            : { position: "relative", zIndex: 1 }
-        }
+            : { position: "relative", zIndex: 1 }),
+          ...(solidFooter && { color: "#fff" }),
+        }}
       >
         Copyright LavidaCo 2026
         {showFaqLink && (
