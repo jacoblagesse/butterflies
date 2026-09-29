@@ -296,7 +296,15 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 .panel-sheet {
   width: min(640px, 92vw);
   max-height: 90vh;
-  overflow-y: auto;
+  /* A flex column, not the scroll container itself — .panel-head is a
+     flex-shrink:0 item so it's genuinely outside the scrolling area, not
+     just visually "stuck" over it. `position: sticky` (the previous
+     approach) doesn't reliably receive clicks when its scrolling ancestor
+     also has a `transform` (used below for the open/close animation) — a
+     known engine hit-testing quirk — which is why the close button stopped
+     being clickable once there was enough content to scroll. */
+  display: flex;
+  flex-direction: column;
   position: relative;
   transform: translateY(8px) scale(0.98);
   opacity: 0;
@@ -305,6 +313,8 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 }
 
 .panel-content {
+  overflow-y: auto;
+  min-height: 0; /* let this flex item actually shrink+scroll instead of overflowing the sheet */
   max-height: 0;
   opacity: 0;
   transition: max-height 320ms ease, opacity 240ms ease;
@@ -612,9 +622,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
    panel short of finding the thin backdrop margin around the sheet. */
 .panel-head {
   display: flex; align-items: center; justify-content: space-between; padding: 0 0 12px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  flex-shrink: 0; /* .panel-sheet is a flex column now — this keeps its size fixed, never scrolls */
   background: none;
 }
 
