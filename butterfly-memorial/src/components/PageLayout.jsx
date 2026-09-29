@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import Header from "./Header";
 import AuthPopup from "./AuthPopup";
 import FlyingButterfly from "./FlyingButterfly";
@@ -19,7 +20,7 @@ const AMBIENT_BUTTERFLIES = [
   { id: "amb-7", gifter: "", message: "", color: "white" },
 ];
 
-export default function PageLayout({ children, centered = false, snap = false }) {
+export default function PageLayout({ children, centered = false, snap = false, showFaqLink = false }) {
   const [isAuthOpen, setAuthOpen] = useState(false);
   const stageRef = useRef(null);
   const butterflyStates = useButterflyPhysics(AMBIENT_BUTTERFLIES, stageRef);
@@ -106,6 +107,12 @@ export default function PageLayout({ children, centered = false, snap = false })
         }
       >
         Copyright LavidaCo 2026
+        {showFaqLink && (
+          <>
+            {" · "}
+            <Link to="/faq" style={{ color: "inherit" }}>FAQ</Link>
+          </>
+        )}
       </footer>
     </div>
   );

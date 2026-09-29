@@ -95,6 +95,12 @@ export default function About() {
             </Link>
           </div>
 
+          <div style={{ textAlign: 'center' }}>
+            <Link to="/faq" className="sub" style={{ textDecoration: 'underline' }}>
+              FAQ
+            </Link>
+          </div>
+
         </div>
       </section>
     </PageLayout>
