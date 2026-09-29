@@ -193,13 +193,14 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* ===== Garden full-viewport stage ===== */
 .garden-stage { position: fixed; inset: 0; border-radius: 0; }
 
-/* Sits just right of the minimal header's logo (top:12/left:12, 160x52) —
-   18px top-offset vertically centers the 40px button within the logo's
-   52px height; 184px left-offset clears the logo's right edge (12+160) plus a gap */
+/* Sits directly under the minimal header's user icon (top:12/right:12, 40px).
+   Same right offset and size as that icon; the 12px gap between them matches
+   the 12px the icon itself sits from the top, so the button is equidistant
+   from the top of the screen and from the icon above it. */
 .garden-settings-btn {
   position: fixed;
-  top: 18px;
-  left: 184px;
+  top: 64px; /* 12 (icon's top) + 40 (icon height) + 12 (gap) */
+  right: 12px;
   z-index: 21;
   width: 40px;
   height: 40px;
