@@ -13,6 +13,7 @@ import DevRibbon from "../components/DevRibbon";
 import { useButterflyPhysics } from "../hooks/useButterflyPhysics";
 import { useBackgroundAudio } from "../hooks/useBackgroundAudio";
 import { useAuth } from "../contexts/AuthContext";
+import { sha256Hex } from "../utils/hash";
 
 import "./spirit-butterfly.css";
 
@@ -32,6 +33,19 @@ export default function Garden() {
   const [butterflies, setButterflies] = useState([]);
   const [pendingButterflyId, setPendingButterflyId] = useState(null);
   const [isAuthOpen, setAuthOpen] = useState(false);
+
+  // Simple UI-level gate (not real access control — see functions/index.js's
+  // updateGardenInfo comment on passwordHash): once entered correctly for a
+  // garden, remembered for the rest of the browser tab session.
+  const [unlocked, setUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [unlockError, setUnlockError] = useState("");
+  const [checkingPassword, setCheckingPassword] = useState(false);
+
+  useEffect(() => {
+    if (!gardenId) return;
+    setUnlocked(sessionStorage.getItem(`garden-unlocked-${gardenId}`) === "1");
+  }, [gardenId]);
 
   // Hover card: {visible, name, message, x, y, tailSide}
   const [hoverCard, setHoverCard] = useState({ visible: false, name: "", message: "", x: 0, y: 0, tailSide: "left", isHonoree: false });
@@ -150,6 +164,56 @@ export default function Garden() {
   }
 
   const isOwner = !!(user && garden.user && garden.user.id === user.uid);
+  const isLocked = !!garden.passwordHash && !isOwner && !unlocked;
+
+  const handleUnlock = async (e) => {
+    e.preventDefault();
+    setCheckingPassword(true);
+    setUnlockError("");
+    try {
+      const hash = await sha256Hex(passwordInput.trim());
+      if (hash === garden.passwordHash) {
+        sessionStorage.setItem(`garden-unlocked-${gardenId}`, "1");
+        setUnlocked(true);
+      } else {
+        setUnlockError("Incorrect password.");
+      }
+    } finally {
+      setCheckingPassword(false);
+    }
+  };
+
+  if (isLocked) {
+    return (
+      <div className="page full-page" style={{ position: "relative" }}>
+        <VideoBackground backgroundKey={garden.style || "flowers"} />
+        <Header onSignInClick={() => setAuthOpen(true)} variant="minimal" />
+        <AuthPopup isOpen={isAuthOpen} onClose={() => setAuthOpen(false)} />
+        <div style={{
+          position: "fixed", inset: 0, display: "grid", placeItems: "center", padding: 16, zIndex: 20,
+        }}>
+          <form onSubmit={handleUnlock} className="hero-card" style={{ maxWidth: 360, width: "100%", padding: "clamp(24px, 5vw, 36px)", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", margin: "0 0 8px", color: "var(--ink)" }}>
+              This garden is password protected
+            </h2>
+            <p className="sub" style={{ margin: "0 0 18px" }}>Enter the password to view it.</p>
+            <input
+              className="in"
+              type="password"
+              placeholder="Password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              autoFocus
+            />
+            {unlockError && <div style={{ color: "#c44040", fontSize: "0.9rem", marginTop: 10 }}>{unlockError}</div>}
+            <button type="submit" className="btn primary" style={{ marginTop: 18, width: "100%" }} disabled={checkingPassword || !passwordInput.trim()}>
+              {checkingPassword ? "Checking…" : "Unlock"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   // Shared by desktop hover and mobile tap (see FlyingButterfly.jsx) so
   // selection is deterministic regardless of which fired: switching to a

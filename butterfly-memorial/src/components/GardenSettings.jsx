@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Panel } from './GardenControls';
 import { updateGardenInfoFn } from '../firebase';
+import { sha256Hex } from '../utils/hash';
 
 import iconMountain from '../assets/garden-icons/garden_icons_mountain.png';
 import iconTropical from '../assets/garden-icons/garden_icons_tropical.png';
@@ -23,6 +24,8 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
   const [lastName, setLastName] = useState(honoree?.last_name || '');
   const [dates, setDates] = useState(honoree?.dates || '');
   const [obit, setObit] = useState(honoree?.obit || '');
+  const [passwordProtected, setPasswordProtected] = useState(!!garden?.passwordHash);
+  const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,6 +38,8 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
     setLastName(honoree?.last_name || '');
     setDates(honoree?.dates || '');
     setObit(honoree?.obit || '');
+    setPasswordProtected(!!garden?.passwordHash);
+    setNewPassword('');
     setError(null);
   }, [open, garden, honoree]);
 
@@ -45,9 +50,21 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
       setError('First name is required.');
       return;
     }
+    const hadPassword = !!garden?.passwordHash;
+    if (passwordProtected && !hadPassword && !newPassword.trim()) {
+      setError('Enter a password to protect this garden.');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
+      let passwordHash; // undefined = leave unchanged
+      if (!passwordProtected) {
+        passwordHash = null; // clear protection
+      } else if (newPassword.trim()) {
+        passwordHash = await sha256Hex(newPassword.trim());
+      }
+
       await updateGardenInfoFn({
         gardenId,
         style,
@@ -57,9 +74,10 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
           dates,
           obit,
         },
+        ...(passwordHash !== undefined && { passwordHash }),
       });
       onSaved?.({
-        garden: { ...garden, style },
+        garden: { ...garden, style, ...(passwordHash !== undefined && { passwordHash }) },
         honoree: { ...honoree, first_name: firstName.trim(), last_name: lastName.trim(), dates: dates.trim(), obit: obit.trim() },
       });
       setOpen(false);
@@ -138,6 +156,27 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
                 onChange={(e) => setObit(e.target.value)}
               />
             </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={passwordProtected}
+                onChange={(e) => { setPasswordProtected(e.target.checked); setNewPassword(''); }}
+              />
+              <span className="sub" style={{ margin: 0 }}>Password protect this garden</span>
+            </label>
+            {passwordProtected && (
+              <input
+                className="in"
+                type="password"
+                placeholder={garden?.passwordHash ? 'New password (leave blank to keep current)' : 'Password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                style={{ marginTop: 10 }}
+              />
+            )}
           </div>
 
           {error && <div style={{ color: '#c44040', fontSize: '0.9rem' }}>{error}</div>}

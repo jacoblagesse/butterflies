@@ -242,7 +242,7 @@ exports.updateGardenInfo = onCall(
       throw new HttpsError("unauthenticated", "You must be signed in.");
     }
 
-    const { gardenId, name, style, honoree } = request.data;
+    const { gardenId, name, style, honoree, passwordHash } = request.data;
     if (!gardenId) {
       throw new HttpsError("invalid-argument", "gardenId is required.");
     }
@@ -261,6 +261,18 @@ exports.updateGardenInfo = onCall(
         throw new HttpsError("invalid-argument", "Invalid style.");
       }
       gardenUpdates.style = style;
+    }
+    // passwordHash is a client-computed SHA-256 hex digest (see
+    // src/utils/hash.js) — this is a simple UI-level gate, not real access
+    // control (the garden's data stays publicly readable the same way it
+    // always has been), so the goal is only to avoid ever writing a
+    // visitor-chosen plaintext password into a publicly-readable document.
+    // null explicitly clears protection; undefined leaves it unchanged.
+    if (passwordHash !== undefined) {
+      if (passwordHash !== null && !/^[0-9a-f]{64}$/.test(passwordHash)) {
+        throw new HttpsError("invalid-argument", "Invalid password hash.");
+      }
+      gardenUpdates.passwordHash = passwordHash;
     }
     if (Object.keys(gardenUpdates).length > 0) {
       await db.doc(`gardens/${gardenId}`).update(gardenUpdates);
