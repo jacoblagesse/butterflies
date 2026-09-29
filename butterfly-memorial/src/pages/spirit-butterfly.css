@@ -301,11 +301,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   transform: translateY(8px) scale(0.98);
   opacity: 0;
   transition: transform 240ms ease, opacity 240ms ease;
-  /* Opaque (overrides .hero-card's translucent background) so the sticky
-     .panel-head below reads as one continuous surface instead of a second
-     translucent layer stacked on top, which showed as a lighter "highlight"
-     band wherever a title/step label sits. */
-  background: var(--card-solid);
+  /* Translucent — inherits .hero-card's background(var(--card)) + blur. */
 }
 
 .panel-content {
@@ -619,10 +615,13 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   position: sticky;
   top: 0;
   z-index: 2;
-  /* Same opaque color as .panel-sheet itself (not a separate translucent
-     layer stacked on top of it) so this sticky strip reads as one
-     continuous surface with the rest of the card, not a highlighted band. */
-  background: var(--card-solid);
+  /* No background color here — .panel-sheet is translucent, and stacking
+     any color on top of that (even the same one) compounds the opacity and
+     shows up as a highlight band. Blur alone still keeps scrolled content
+     from reading clearly under the sticky title/close button, without
+     adding any extra opacity of its own. */
+  background: transparent;
+  backdrop-filter: blur(16px);
 }
 
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(5px)}}
