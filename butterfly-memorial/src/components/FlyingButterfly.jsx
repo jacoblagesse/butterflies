@@ -11,7 +11,7 @@ const BUTTERFLY_RESTING = [BlueButterflyResting, OrangeButterflyResting, GreenBu
 
 export default function FlyingButterfly({
   x = 0, y = 0, size = 0.5, direction = 1, imageIndex = 0, label = "",
-  isLanded = false, color, onHoverStart, onHoverEnd
+  isLanded = false, color, onHoverStart, onHoverEnd, onSelect
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -56,6 +56,12 @@ export default function FlyingButterfly({
       }}
       onMouseEnter={(e) => { setHovered(true); onHoverStart && onHoverStart(e.currentTarget.getBoundingClientRect()); }}
       onMouseLeave={() => { setHovered(false); onHoverEnd && onHoverEnd(); }}
+      // Touch devices synthesize a mouseenter on first tap but won't fire a
+      // matching mouseleave until a *different* element is touched — so
+      // tapping the same already-"hovered" butterfly again does nothing.
+      // onClick fires reliably on every tap regardless of that quirk, so
+      // selection is driven through it too (see garden.jsx's selectButterfly).
+      onClick={(e) => { setHovered(true); onSelect && onSelect(e.currentTarget.getBoundingClientRect()); }}
     >
       <img src={butterflyImage} alt={label} />
     </div>
