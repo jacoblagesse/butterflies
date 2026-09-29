@@ -193,26 +193,27 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
 /* ===== Garden full-viewport stage ===== */
 .garden-stage { position: fixed; inset: 0; border-radius: 0; }
 
-/* Sits directly under the minimal header's user icon (top:12/right:12, 40px).
-   Same right offset and size as that icon; the 12px gap between them matches
-   the 12px the icon itself sits from the top, so the button is equidistant
-   from the top of the screen and from the icon above it. */
+/* Sits under the minimal header's user icon (top:12/right:12, 40px), same
+   right offset and size, with extra breathing room below it. Colors match
+   the icon's authenticated state (.user-icon-wrapper.authenticated in
+   Header.css) since the owner — the only one who ever sees this button —
+   is always signed in when viewing their own garden. */
 .garden-settings-btn {
   position: fixed;
-  top: 64px; /* 12 (icon's top) + 40 (icon height) + 12 (gap) */
+  top: 76px; /* 12 (icon's top) + 40 (icon height) + 24 (gap) */
   right: 12px;
   z-index: 21;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #ffffffaa;
+  background: #fff;
+  border: 2px solid var(--muted, #5b6470);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(6px);
-  border: none;
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: var(--ink);
+  color: var(--ink, #1f2a37);
   transition: background 200ms ease, transform 120ms ease;
   padding: 0;
 }
