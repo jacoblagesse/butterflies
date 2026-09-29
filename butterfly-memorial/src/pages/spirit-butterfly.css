@@ -614,7 +614,11 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   position: sticky;
   top: 0;
   z-index: 2;
-  background: var(--card-solid);
+  /* Match the card's own translucent-blur treatment (not --card-solid) so
+     the sticky strip blends in instead of reading as a flat white highlight
+     bar sitting over the title. */
+  background: var(--card);
+  backdrop-filter: blur(12px);
 }
 
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(5px)}}
