@@ -31,6 +31,7 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
@@ -47,6 +48,7 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
     setNewPassword('');
     setError(null);
     setConfirmingDelete(false);
+    setDeleteConfirmText('');
     setDeleteError(null);
   }, [open, garden, honoree]);
 
@@ -201,49 +203,58 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
 
           {error && <div style={{ color: '#c44040', fontSize: '0.9rem' }}>{error}</div>}
 
-          <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
-            <button type="button" className="btn ghost" onClick={() => setOpen(false)} disabled={saving}>
-              Cancel
+          <div className="cta-row" style={{ justifyContent: 'space-between' }}>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setConfirmingDelete(true)}
+              style={{ color: '#c44040', borderColor: '#c44040' }}
+            >
+              Delete Garden
             </button>
-            <button type="button" className="btn primary" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving…' : 'Save Changes'}
-            </button>
+            <div className="cta-row" style={{ margin: 0 }}>
+              <button type="button" className="btn ghost" onClick={() => setOpen(false)} disabled={saving}>
+                Cancel
+              </button>
+              <button type="button" className="btn primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
           </div>
 
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-            <div className="sub" style={{ marginBottom: 8, color: '#c44040' }}>Danger Zone</div>
-            {!confirmingDelete ? (
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => setConfirmingDelete(true)}
-                style={{ color: '#c44040', borderColor: '#c44040' }}
-              >
-                Delete Garden
-              </button>
-            ) : (
-              <div style={{ display: 'grid', gap: 10 }}>
-                <div style={{ fontSize: '0.9rem', color: 'var(--ink)' }}>
-                  This permanently deletes the garden, every butterfly in it, and the honoree's info. This cannot be undone.
-                </div>
-                {deleteError && <div style={{ color: '#c44040', fontSize: '0.9rem' }}>{deleteError}</div>}
-                <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn ghost" onClick={() => setConfirmingDelete(false)} disabled={deleting}>
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn primary"
-                    onClick={handleDeleteGarden}
-                    disabled={deleting}
-                    style={{ background: '#c44040' }}
-                  >
-                    {deleting ? 'Deleting…' : 'Yes, permanently delete'}
-                  </button>
-                </div>
+          {confirmingDelete && (
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--ink)' }}>
+                This permanently deletes the garden, every butterfly in it, and the honoree's info. Type DELETE to confirm.
               </div>
-            )}
-          </div>
+              <input
+                className="in"
+                placeholder="Type DELETE"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+              />
+              {deleteError && <div style={{ color: '#c44040', fontSize: '0.9rem' }}>{deleteError}</div>}
+              <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => { setConfirmingDelete(false); setDeleteConfirmText(''); }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={handleDeleteGarden}
+                  disabled={deleting || deleteConfirmText !== 'DELETE'}
+                  style={{ background: '#c44040' }}
+                >
+                  {deleting ? 'Deleting…' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </Panel>
     </>

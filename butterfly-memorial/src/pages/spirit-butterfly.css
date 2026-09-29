@@ -604,8 +604,18 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   border-radius: var(--r-sm);
 }
 
-/* Panel head override — remove title when wizard manages its own heading */
-.panel-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0 12px; }
+/* Panel head override — remove title when wizard manages its own heading.
+   Sticky + opaque background: .panel-sheet is the scroll container for long
+   content (e.g. a garden with many tributes), and without this the close (X)
+   button scrolled away with the content, leaving no easy way to close the
+   panel short of finding the thin backdrop margin around the sheet. */
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between; padding: 0 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--card-solid);
+}
 
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(5px)}}
 
