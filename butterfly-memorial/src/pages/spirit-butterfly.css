@@ -245,6 +245,40 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   .garden-controls { top: auto; bottom: 24px; right: 24px; }
 }
 
+/* Share row — bottom-center, clear of the volume button (bottom-left) and
+   the tributes/release controls (bottom-right) */
+.garden-share {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 21;
+}
+
+.garden-share-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  transition: background 200ms ease, transform 120ms ease;
+  padding: 0;
+}
+.garden-share-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+}
+@media (max-width: 640px) {
+  .garden-share { bottom: 78px; } /* clear the stacked mobile volume/controls */
+}
+
 /* Panels (list / buy) */
 .panel-root { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; pointer-events: none; }
 .panel-root.open { pointer-events: auto; }

@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import AuthPopup from "../components/AuthPopup";
 import GardenControls from "../components/GardenControls";
 import GardenSettings from "../components/GardenSettings";
+import GardenShare from "../components/GardenShare";
 import FlyingButterfly from "../components/FlyingButterfly";
 import VideoBackground from "../components/VideoBackground";
 import DevRibbon from "../components/DevRibbon";
@@ -318,6 +319,7 @@ export default function Garden() {
             )}
 
             <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={handlePendingChange} />
+            <GardenShare honoreeName={honoree ? `${honoree.first_name} ${honoree.last_name}`.trim() : ''} />
           </div>
         </main>
       </div>
