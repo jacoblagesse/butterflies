@@ -615,13 +615,7 @@ h2{font-family:"Playfair Display",serif; font-size:clamp(var(--fs-h1-min), 5vw, 
   position: sticky;
   top: 0;
   z-index: 2;
-  /* No background color here — .panel-sheet is translucent, and stacking
-     any color on top of that (even the same one) compounds the opacity and
-     shows up as a highlight band. Blur alone still keeps scrolled content
-     from reading clearly under the sticky title/close button, without
-     adding any extra opacity of its own. */
-  background: transparent;
-  backdrop-filter: blur(16px);
+  background: none;
 }
 
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(5px)}}
