@@ -316,3 +316,73 @@ exports.updateGardenInfo = onCall(
     return { success: true };
   }
 );
+
+// Lets the garden owner remove a single butterfly. Client-side butterfly
+// writes are denied by Firestore rules (see the payment-integrity comment
+// on the `butterflies` match block), so this runs server-side and is gated
+// on garden ownership.
+exports.deleteButterfly = onCall(
+  {},
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const { gardenId, butterflyId } = request.data;
+    if (!gardenId || !butterflyId) {
+      throw new HttpsError("invalid-argument", "gardenId and butterflyId are required.");
+    }
+
+    await assertGardenOwner(gardenId, uid);
+
+    const butterflyRef = db.doc(`butterflies/${butterflyId}`);
+    const snap = await butterflyRef.get();
+    if (!snap.exists) {
+      // Already gone — deleting is idempotent from the caller's perspective.
+      return { success: true };
+    }
+    const data = snap.data();
+    if (data.gardenId !== gardenId) {
+      throw new HttpsError("permission-denied", "This butterfly does not belong to that garden.");
+    }
+    if (data.color === "white") {
+      throw new HttpsError("failed-precondition", "The garden's spirit butterfly can't be deleted.");
+    }
+
+    await butterflyRef.delete();
+    return { success: true };
+  }
+);
+
+// Lets the garden owner permanently delete the garden: every butterfly in
+// it, its honoree record, and the garden document itself.
+exports.deleteGarden = onCall(
+  {},
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "You must be signed in.");
+    }
+
+    const { gardenId } = request.data;
+    if (!gardenId) {
+      throw new HttpsError("invalid-argument", "gardenId is required.");
+    }
+
+    const garden = await assertGardenOwner(gardenId, uid);
+
+    // A garden's butterfly count is realistically nowhere near Firestore's
+    // 500-write batch limit, so a single batch covers it.
+    const butterfliesSnap = await db.collection("butterflies").where("gardenId", "==", gardenId).get();
+    const batch = db.batch();
+    butterfliesSnap.forEach((doc) => batch.delete(doc.ref));
+    if (garden.honoree) {
+      batch.delete(garden.honoree);
+    }
+    batch.delete(db.doc(`gardens/${gardenId}`));
+    await batch.commit();
+
+    return { success: true };
+  }
+);

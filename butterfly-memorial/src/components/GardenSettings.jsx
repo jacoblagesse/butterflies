@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Panel } from './GardenControls';
-import { updateGardenInfoFn } from '../firebase';
+import { updateGardenInfoFn, deleteGardenFn } from '../firebase';
 import { sha256Hex } from '../utils/hash';
 
 import iconMountain from '../assets/garden-icons/garden_icons_mountain.png';
@@ -18,6 +19,7 @@ const STYLES = [
 ];
 
 export default function GardenSettings({ garden, honoree, gardenId, isOwner, onSaved }) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [style, setStyle] = useState(garden?.style || 'mountain');
   const [firstName, setFirstName] = useState(honoree?.first_name || '');
@@ -28,6 +30,9 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   // Re-sync the form whenever the panel is (re)opened, so edits made in a
   // prior open (or a save elsewhere) aren't stomped by stale local state.
@@ -41,9 +46,23 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
     setPasswordProtected(!!garden?.passwordHash);
     setNewPassword('');
     setError(null);
+    setConfirmingDelete(false);
+    setDeleteError(null);
   }, [open, garden, honoree]);
 
   if (!isOwner) return null;
+
+  const handleDeleteGarden = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteGardenFn({ gardenId });
+      navigate('/profile');
+    } catch (err) {
+      setDeleteError(err.message || 'Failed to delete garden.');
+      setDeleting(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!firstName.trim()) {
@@ -189,6 +208,41 @@ export default function GardenSettings({ garden, honoree, gardenId, isOwner, onS
             <button type="button" className="btn primary" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+            <div className="sub" style={{ marginBottom: 8, color: '#c44040' }}>Danger Zone</div>
+            {!confirmingDelete ? (
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setConfirmingDelete(true)}
+                style={{ color: '#c44040', borderColor: '#c44040' }}
+              >
+                Delete Garden
+              </button>
+            ) : (
+              <div style={{ display: 'grid', gap: 10 }}>
+                <div style={{ fontSize: '0.9rem', color: 'var(--ink)' }}>
+                  This permanently deletes the garden, every butterfly in it, and the honoree's info. This cannot be undone.
+                </div>
+                {deleteError && <div style={{ color: '#c44040', fontSize: '0.9rem' }}>{deleteError}</div>}
+                <div className="cta-row" style={{ justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn ghost" onClick={() => setConfirmingDelete(false)} disabled={deleting}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn primary"
+                    onClick={handleDeleteGarden}
+                    disabled={deleting}
+                    style={{ background: '#c44040' }}
+                  >
+                    {deleting ? 'Deleting…' : 'Yes, permanently delete'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Panel>

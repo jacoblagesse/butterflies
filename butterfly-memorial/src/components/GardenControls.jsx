@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPaymentIntentFn, confirmPaymentFn } from '../firebase';
+import { createPaymentIntentFn, confirmPaymentFn, deleteButterflyFn } from '../firebase';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import CheckoutForm from './CheckoutForm';
@@ -97,7 +97,7 @@ function computeCutoffMs(delaysMs) {
   return Math.min(total, CUTOFF_CAP_MS);
 }
 
-export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange }) {
+export default function GardenControls({ butterflies, onAdd, gardenId, releaseDisabledPredicate, muted, onVolumeToggle, onPendingChange, isOwner }) {
   const [open, setOpen] = useState(null); // 'list' | 'buy' | null
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -123,7 +123,20 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
   const [hatchSrc, setHatchSrc] = useState(hatchGif);
   const [step1Error, setStep1Error] = useState('');
   const [step2Error, setStep2Error] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
   const hatchFireRef = useRef(false);
+
+  const handleDeleteButterfly = async (butterflyId) => {
+    if (!window.confirm('Delete this butterfly? This cannot be undone.')) return;
+    setDeletingId(butterflyId);
+    try {
+      await deleteButterflyFn({ gardenId, butterflyId });
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete butterfly.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
   // { [color]: Promise<cutoffMs> } — kicked off as soon as a color is picked
   // (step 1) so the multi-megabyte gif is already fetched and its cutoff
   // point (see computeCutoffMs) known by the time the user reaches "Release"
@@ -488,6 +501,26 @@ export default function GardenControls({ butterflies, onAdd, gardenId, releaseDi
                 {b.message}
               </div>
             </div>
+            {isOwner && (
+              <button
+                type="button"
+                aria-label="Delete butterfly"
+                title="Delete butterfly"
+                onClick={() => handleDeleteButterfly(b.id)}
+                disabled={deletingId === b.id}
+                style={{
+                  appearance: 'none', background: 'none', border: 'none', cursor: 'pointer',
+                  padding: 6, flexShrink: 0, color: '#a8a0b4', opacity: deletingId === b.id ? 0.5 : 1,
+                }}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            )}
           </div>
         ));
         })()}

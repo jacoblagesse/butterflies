@@ -415,7 +415,7 @@ export default function Garden() {
               </>
             )}
 
-            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={handlePendingChange} />
+            <GardenControls butterflies={butterflies} gardenId={gardenId} muted={muted} onVolumeToggle={toggleMute} onPendingChange={handlePendingChange} isOwner={isOwner} />
             <GardenShare honoreeName={honoree ? `${honoree.first_name} ${honoree.last_name}`.trim() : ''} />
           </div>
         </main>

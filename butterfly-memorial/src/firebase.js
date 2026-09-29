@@ -56,6 +56,8 @@ export const createPaymentIntentFn = httpsCallable(functions, 'createPaymentInte
 export const confirmPaymentFn = httpsCallable(functions, 'confirmPayment');
 export const createInitialButterflyFn = httpsCallable(functions, 'createInitialButterfly');
 export const updateGardenInfoFn = httpsCallable(functions, 'updateGardenInfo');
+export const deleteButterflyFn = httpsCallable(functions, 'deleteButterfly');
+export const deleteGardenFn = httpsCallable(functions, 'deleteGarden');
 
 // Connect to emulators only when explicitly opted in
 if (import.meta.env.VITE_USE_EMULATOR === "true") {
