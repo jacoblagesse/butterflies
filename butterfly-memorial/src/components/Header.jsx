@@ -135,6 +135,7 @@ export default function Header({ onSignInClick, variant = 'default' }) {
         <nav>
           <NavLink to="/" end className="nav-link">Home</NavLink>
           <NavLink to="/about" className="nav-link">About</NavLink>
+          <NavLink to="/contact" className="nav-link">Contact</NavLink>
           <UserDropdown onSignInClick={onSignInClick} />
         </nav>
       </header>

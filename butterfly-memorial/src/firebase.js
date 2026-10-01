@@ -58,6 +58,7 @@ export const createInitialButterflyFn = httpsCallable(functions, 'createInitialB
 export const updateGardenInfoFn = httpsCallable(functions, 'updateGardenInfo');
 export const deleteButterflyFn = httpsCallable(functions, 'deleteButterfly');
 export const deleteGardenFn = httpsCallable(functions, 'deleteGarden');
+export const sendContactMessageFn = httpsCallable(functions, 'sendContactMessage');
 
 // Connect to emulators only when explicitly opted in
 if (import.meta.env.VITE_USE_EMULATOR === "true") {

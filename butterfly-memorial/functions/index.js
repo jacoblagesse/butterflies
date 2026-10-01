@@ -1,5 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
+const { defineSecret, defineString } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 
@@ -382,6 +382,89 @@ exports.deleteGarden = onCall(
     }
     batch.delete(db.doc(`gardens/${gardenId}`));
     await batch.commit();
+
+    return { success: true };
+  }
+);
+
+// Contact form. Sends straight to the inbox over SMTP — nothing is stored.
+// SMTP_HOST / SMTP_PORT / SMTP_USER are plain params (set in functions/.env);
+// SMTP_PASS is a Firebase secret. Works with any SMTP provider (Google
+// Workspace, Gmail app password, Resend, SendGrid, ...).
+const smtpHost = defineString("SMTP_HOST");
+const smtpPort = defineString("SMTP_PORT", { default: "465" });
+const smtpUser = defineString("SMTP_USER");
+const smtpPass = defineSecret("SMTP_PASS");
+
+const CONTACT_TO = "info@butterflytribute.com";
+const MAX_CONTACT_NAME_LEN = 80;
+const MAX_CONTACT_MESSAGE_LEN = 3000;
+
+const getSmtpPass = () => {
+  if (!isEmulator) {
+    try { return smtpPass.value(); } catch {}
+  }
+  return process.env.SMTP_PASS;
+};
+
+const escapeHtml = (s) =>
+  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+exports.sendContactMessage = onCall(
+  isEmulator ? {} : { secrets: [smtpPass] },
+  async (request) => {
+    const { name, email, message, website } = request.data || {};
+
+    // Honeypot: real visitors never see or fill this field. Pretend success
+    // so bots don't learn to skip it.
+    if (website) {
+      return { success: true };
+    }
+
+    if (typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      throw new HttpsError("invalid-argument", "Please enter a valid email address.");
+    }
+    if (typeof message !== "string" || !message.trim()) {
+      throw new HttpsError("invalid-argument", "Please enter a message.");
+    }
+    if (message.length > MAX_CONTACT_MESSAGE_LEN) {
+      throw new HttpsError("invalid-argument", "Message is too long.");
+    }
+    if (name !== undefined && (typeof name !== "string" || name.length > MAX_CONTACT_NAME_LEN)) {
+      throw new HttpsError("invalid-argument", "Invalid name.");
+    }
+
+    // Strip CR/LF so visitor input can't inject extra mail headers.
+    const cleanEmail = email.trim();
+    const cleanName = (name || "").trim().replace(/[\r\n]+/g, " ");
+    const cleanMessage = message.trim();
+    const from = cleanName ? `${cleanName} <${cleanEmail}>` : cleanEmail;
+
+    const port = Number(smtpPort.value());
+    const transporter = require("nodemailer").createTransport({
+      host: smtpHost.value(),
+      port,
+      secure: port === 465,
+      auth: { user: smtpUser.value(), pass: getSmtpPass() },
+    });
+
+    try {
+      await transporter.sendMail({
+        // Send as the authenticated account (providers reject spoofed From
+        // addresses); replying goes to the visitor via Reply-To.
+        from: { name: "Butterfly Tribute Contact Form", address: smtpUser.value() },
+        to: CONTACT_TO,
+        replyTo: { name: cleanName, address: cleanEmail },
+        subject: `Contact form: ${cleanName || cleanEmail}`,
+        text: `From: ${from}\n\n${cleanMessage}`,
+        html:
+          `<p><strong>From:</strong> ${escapeHtml(from)}</p>` +
+          `<p style="white-space:pre-wrap">${escapeHtml(cleanMessage)}</p>`,
+      });
+    } catch (err) {
+      console.error("Contact email failed:", err);
+      throw new HttpsError("internal", "We couldn't send your message right now. Please try again later.");
+    }
 
     return { success: true };
   }
