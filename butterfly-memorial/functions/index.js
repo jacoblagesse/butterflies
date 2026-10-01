@@ -1,5 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { defineSecret, defineString } = require("firebase-functions/params");
+const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 
@@ -388,20 +388,21 @@ exports.deleteGarden = onCall(
 );
 
 // Contact form. Sends straight to the inbox over SMTP — nothing is stored.
-// SMTP_HOST / SMTP_PORT / SMTP_USER are plain params (set in functions/.env);
-// SMTP_PASS is a Firebase secret. Works with any SMTP provider (Google
-// Workspace, Gmail app password, Resend, SendGrid, ...).
-const smtpHost = defineString("SMTP_HOST");
-const smtpPort = defineString("SMTP_PORT", { default: "465" });
-const smtpUser = defineString("SMTP_USER");
-const smtpPass = defineSecret("SMTP_PASS");
+//
+// EMAIL_ENABLED is off until a mailbox exists for CONTACT_TO. While off,
+// messages are only written to the function logs and the visitor still sees
+// success. To turn it on: set SMTP_HOST / SMTP_PORT / SMTP_USER in
+// functions/.env, run `firebase functions:secrets:set SMTP_PASS`, flip this
+// to true, and redeploy.
+const EMAIL_ENABLED = false;
+const smtpPass = EMAIL_ENABLED ? defineSecret("SMTP_PASS") : null;
 
 const CONTACT_TO = "info@butterflytribute.com";
 const MAX_CONTACT_NAME_LEN = 80;
 const MAX_CONTACT_MESSAGE_LEN = 3000;
 
 const getSmtpPass = () => {
-  if (!isEmulator) {
+  if (!isEmulator && smtpPass) {
     try { return smtpPass.value(); } catch {}
   }
   return process.env.SMTP_PASS;
@@ -411,7 +412,7 @@ const escapeHtml = (s) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 exports.sendContactMessage = onCall(
-  isEmulator ? {} : { secrets: [smtpPass] },
+  isEmulator || !EMAIL_ENABLED ? {} : { secrets: [smtpPass] },
   async (request) => {
     const { name, email, message, website } = request.data || {};
 
@@ -440,19 +441,25 @@ exports.sendContactMessage = onCall(
     const cleanMessage = message.trim();
     const from = cleanName ? `${cleanName} <${cleanEmail}>` : cleanEmail;
 
-    const port = Number(smtpPort.value());
+    if (!EMAIL_ENABLED) {
+      console.log("Contact message (email disabled):", { from, message: cleanMessage });
+      return { success: true };
+    }
+
+    const smtpUser = process.env.SMTP_USER;
+    const port = Number(process.env.SMTP_PORT || 465);
     const transporter = require("nodemailer").createTransport({
-      host: smtpHost.value(),
+      host: process.env.SMTP_HOST,
       port,
       secure: port === 465,
-      auth: { user: smtpUser.value(), pass: getSmtpPass() },
+      auth: { user: smtpUser, pass: getSmtpPass() },
     });
 
     try {
       await transporter.sendMail({
         // Send as the authenticated account (providers reject spoofed From
         // addresses); replying goes to the visitor via Reply-To.
-        from: { name: "Butterfly Tribute Contact Form", address: smtpUser.value() },
+        from: { name: "Butterfly Tribute Contact Form", address: smtpUser },
         to: CONTACT_TO,
         replyTo: { name: cleanName, address: cleanEmail },
         subject: `Contact form: ${cleanName || cleanEmail}`,
